@@ -66,7 +66,8 @@ public:
     nvptx64, // NVPTX: 64-bit
     le32,    // le32: generic little-endian 32-bit CPU (PNaCl / Emscripten)
     amdil,   // amdil: amd IL
-    spir     // SPIR: standard portable IR for OpenCL
+    spir,    // SPIR: standard portable IR for OpenCL
+	z80      // z80: Z80
   };
   enum VendorType {
     UnknownVendor,
