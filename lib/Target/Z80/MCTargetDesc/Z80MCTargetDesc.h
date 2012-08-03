@@ -21,6 +21,9 @@ namespace llvm {
     extern Target TheZ80Target;
 } // end namespace llvm
 
+#define GET_REGINFO_ENUM
+#include "Z80GenRegisterInfo.inc"
+
 #define GET_SUBTARGETINFO_ENUM
 #include "Z80GenSubtargetInfo.inc"
 

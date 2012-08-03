@@ -12,7 +12,7 @@ LIBRARYNAME = LLVMZ80CodeGen
 TARGET = Z80
 
 # Make sure that tblgen is run, first thing.
-BUILT_SOURCES = Z80GenSubtargetInfo.inc
+BUILT_SOURCES = Z80GenRegisterInfo.inc Z80GenSubtargetInfo.inc
 
 DIRS = TargetInfo MCTargetDesc
 
