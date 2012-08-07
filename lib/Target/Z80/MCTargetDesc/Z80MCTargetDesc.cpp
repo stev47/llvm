@@ -12,8 +12,16 @@
 //===----------------------------------------------------------------------===//
 
 #include "Z80MCTargetDesc.h"
+#include "llvm/MC/MCRegisterInfo.h"
+#include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/Support/TargetRegistry.h"
+
+#define GET_REGINFO_MC_DESC
+#include "Z80GenRegisterInfo.inc"
+
+#define GET_INSTRINFO_MC_DESC
+#include "Z80GenInstrInfo.inc"
 
 #define GET_SUBTARGETINFO_MC_DESC
 #include "Z80GenSubtargetInfo.inc"
