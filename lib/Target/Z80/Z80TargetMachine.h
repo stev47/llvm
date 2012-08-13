@@ -16,6 +16,7 @@
 
 #include "Z80.h"
 #include "Z80InstrInfo.h"
+#include "Z80FrameLowering.h"
 #include "Z80Subtarget.h"
 #include "llvm/Target/TargetData.h"
 
@@ -25,6 +26,7 @@ namespace llvm {
 		Z80Subtarget     Subtarget;
 		const TargetData DataLayout;	// Calculates type size && alignment
 		Z80InstrInfo     InstrInfo;
+		Z80FrameLowering FrameLowering;
     public:
         Z80TargetMachine(const Target &T, StringRef TT,
                          StringRef CPU, StringRef FS, const TargetOptions &Options,

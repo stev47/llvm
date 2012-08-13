@@ -30,5 +30,6 @@ Z80TargetMachine::Z80TargetMachine(const Target &T,
     : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
 	Subtarget(TT, CPU, FS),
 	DataLayout("e-p:16:16:16-i8:8:8-i16:16:16-i32:16:32"),
-	InstrInfo(*this)
+	InstrInfo(*this),
+	FrameLowering()
 { }
