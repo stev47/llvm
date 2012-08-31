@@ -11,15 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef Z80_FRAMELOWERING_H
-#define Z80_FRAMELOWERING_H
+#ifndef Z80FRAMELOWERING_H
+#define Z80FRAMELOWERING_H
 
 #include "llvm/Target/TargetFrameLowering.h"
 
 namespace llvm {
 
-	class Z80FrameLowering : public TargetFrameLowering
-	{
+	class Z80FrameLowering : public TargetFrameLowering {
 	public:
 		explicit Z80FrameLowering();
 

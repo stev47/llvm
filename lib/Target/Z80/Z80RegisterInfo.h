@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_TARGET_Z80REGISTERINFO_H
-#define LLVM_TARGET_Z80REGISTERINFO_H
+#ifndef Z80REGISTERINFO_H
+#define Z80REGISTERINFO_H
 
 #include "llvm/Target/TargetRegisterInfo.h"
 

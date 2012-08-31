@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Z80InstrInfo.h"
+#include "Z80.h"
 
 #define GET_INSTRINFO_CTOR
 #include "Z80GenInstrInfo.inc"
