@@ -31,7 +31,7 @@ def : Proc<"generic", []>;
 include "Z80RegisterInfo.td"
 
 //===----------------------------------------------------------------------===//
-// Register File Description
+// Instruction Descriptions
 //===----------------------------------------------------------------------===//
 
 include "Z80InstrInfo.td"

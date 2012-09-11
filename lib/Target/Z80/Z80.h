@@ -20,6 +20,9 @@
 
 namespace llvm {
     class Z80TargetMachine;
+	class FunctionPass;
+
+	FunctionPass *createZ80ISelDag(Z80TargetMachine &TM, CodeGenOpt::Level OptLevel);
 } // end namespace llvm
 
 #endif

@@ -13,6 +13,8 @@
 
 #include "Z80TargetMachine.h"
 #include "Z80.h"
+#include "llvm/PassManager.h"
+#include "llvm/CodeGen/Passes.h"
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
@@ -33,3 +35,34 @@ Z80TargetMachine::Z80TargetMachine(const Target &T,
 	InstrInfo(*this), TLInfo(*this), TSInfo(*this),
 	FrameLowering()
 { }
+
+namespace {
+	class Z80PassConfig : public TargetPassConfig {
+	public:
+		Z80PassConfig(Z80TargetMachine *TM, PassManagerBase &PM)
+			: TargetPassConfig(TM, PM)
+		{}
+		Z80TargetMachine &getZ80TargetMachine() const {
+			return getTM<Z80TargetMachine>();
+		}
+		virtual bool addInstSelector();
+		virtual bool addPreEmitPass();
+	}; // end class Z80PassConfig
+} // end namespace
+
+TargetPassConfig *Z80TargetMachine::createPassConfig(PassManagerBase &PM)
+{
+	return new Z80PassConfig(this, PM);
+}
+
+bool Z80PassConfig::addInstSelector()
+{
+	PM->add(createZ80ISelDag(getZ80TargetMachine(), getOptLevel()));
+	return false;
+}
+
+bool Z80PassConfig::addPreEmitPass()
+{
+	assert(0 && "Not Implemented yet!");
+	return false;
+}

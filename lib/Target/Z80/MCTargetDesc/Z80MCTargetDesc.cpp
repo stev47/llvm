@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Z80MCTargetDesc.h"
+#include "Z80MCAsmInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
@@ -37,6 +38,9 @@ static MCSubtargetInfo *createZ80MCSubtargetInfo(StringRef TT,
 }
 
 extern "C" void LLVMInitializeZ80TargetMC() {
+	// Register the MC asm info.
+	RegisterMCAsmInfo<Z80MCAsmInfo> X(TheZ80Target);
+
     // Register the MC subtarget info.
     TargetRegistry::RegisterMCSubtargetInfo(TheZ80Target,
                                             createZ80MCSubtargetInfo);
