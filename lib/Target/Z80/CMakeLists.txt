@@ -2,6 +2,9 @@ set(LLVM_TARGET_DEFINITIONS Z80.td)
 
 tablegen(LLVM Z80GenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM Z80GenInstrInfo.inc -gen-instr-info)
+tablegen(LLVM Z80GenAsmWriter.inc -gen-asm-writer)
+tablegen(LLVM Z80GenDAGISel.inc -gen-dag-isel)
+tablegen(LLVM Z80GenCallingConv.inc -gen-callingconv)
 tablegen(LLVM Z80GenSubtargetInfo.inc -gen-subtarget)
 add_public_tablegen_target(Z80CommonTableGen)
 
