@@ -63,6 +63,6 @@ bool Z80PassConfig::addInstSelector()
 
 bool Z80PassConfig::addPreEmitPass()
 {
-	assert(0 && "Not Implemented yet!");
+	//assert(0 && "Not Implemented yet!");
 	return false;
 }
