@@ -31,16 +31,12 @@ const uint16_t* Z80RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) c
 	static const uint16_t CalleeSavedRegs[] = {
 		0
 	};
-
-	assert(0 && "Not Implemented yet!");
 	return CalleeSavedRegs;
 }
 
 BitVector Z80RegisterInfo::getReservedRegs(const MachineFunction &MF) const
 {
 	BitVector Reserved(getNumRegs());
-
-	assert(0 && "Not Implemented yet!");
 	return Reserved;
 }
 

@@ -15,6 +15,8 @@
 #include "Z80ISelLowering.h"
 #include "Z80.h"
 #include "Z80TargetMachine.h"
+#include "llvm\CodeGen\CallingConvLower.h"
+#include "llvm\CodeGen\SelectionDAGISel.h"
 #include "llvm\CodeGen\TargetLoweringObjectFileImpl.h"
 using namespace llvm;
 
@@ -25,4 +27,27 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 	addRegisterClass(MVT::i16, Z80::GR16RegisterClass);
 
 	computeRegisterProperties();
+}
+//===----------------------------------------------------------------------===//
+//                      Calling Convention Implementation
+//===----------------------------------------------------------------------===//
+
+#include "Z80GenCallingConv.inc"
+
+SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
+										CallingConv::ID CallConv, bool isVarArg,
+										const SmallVectorImpl<ISD::InputArg> &Ins,
+										DebugLoc dl, SelectionDAG &DAG,
+										SmallVectorImpl<SDValue> &InVals) const
+{
+	return Chain;
+}
+
+SDValue Z80TargetLowering::LowerReturn(SDValue Chain,
+										CallingConv::ID CallConv, bool isVarArg,
+										const SmallVectorImpl<ISD::OutputArg> &Outs,
+										const SmallVectorImpl<SDValue> &OutVals,
+										DebugLoc dl, SelectionDAG &DAG) const
+{
+	return DAG.getNode(Z80ISD::RET, dl, MVT::Other, Chain);
 }

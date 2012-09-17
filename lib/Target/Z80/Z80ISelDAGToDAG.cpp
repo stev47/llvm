@@ -27,6 +27,7 @@ namespace {
 			Lowering(*TM.getTargetLowering()),
 			Subtarget(*TM.getSubtargetImpl())
 		{ }
+	#include "Z80GenDAGISel.inc"
 	private:
 		SDNode *Select(SDNode *N);
 	}; // end class Z80DAGToDAGISel
@@ -39,6 +40,6 @@ FunctionPass *llvm::createZ80ISelDag(Z80TargetMachine &TM, CodeGenOpt::Level Opt
 
 SDNode *Z80DAGToDAGISel::Select(SDNode *N)
 {
-	assert(0 && "Not Implemented yet!");
-	return NULL;
+	SDNode *ResNode = SelectCode(N);
+	return ResNode;
 }

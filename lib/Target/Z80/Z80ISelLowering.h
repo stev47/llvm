@@ -29,6 +29,18 @@ namespace llvm {
 	class Z80TargetLowering: public TargetLowering {
 	public:
 		explicit Z80TargetLowering(Z80TargetMachine &TM);
+		virtual SDValue
+			LowerFormalArguments(SDValue Chain,
+				CallingConv::ID CallConv, bool isVarArg,
+				const SmallVectorImpl<ISD::InputArg> &Ins,
+				DebugLoc dl, SelectionDAG &DAG,
+				SmallVectorImpl<SDValue> &InVals) const;
+		virtual SDValue
+			LowerReturn(SDValue Chain,
+				CallingConv::ID CallConv, bool isVarArg,
+				const SmallVectorImpl<ISD::OutputArg> &Outs,
+				const SmallVectorImpl<SDValue> &OutVals,
+				DebugLoc dl, SelectionDAG &DAG) const;
 	}; // end class Z80TargetLowering
 } // end namespace llvm
 
