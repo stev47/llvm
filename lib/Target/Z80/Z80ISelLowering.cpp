@@ -15,9 +15,9 @@
 #include "Z80ISelLowering.h"
 #include "Z80.h"
 #include "Z80TargetMachine.h"
-#include "llvm\CodeGen\CallingConvLower.h"
-#include "llvm\CodeGen\SelectionDAGISel.h"
-#include "llvm\CodeGen\TargetLoweringObjectFileImpl.h"
+#include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 using namespace llvm;
 
 Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)

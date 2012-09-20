@@ -14,7 +14,7 @@
 
 #include "Z80.h"
 #include "Z80TargetMachine.h"
-#include "llvm\CodeGen\SelectionDAGISel.h"
+#include "llvm/CodeGen/SelectionDAGISel.h"
 using namespace llvm;
 
 namespace {

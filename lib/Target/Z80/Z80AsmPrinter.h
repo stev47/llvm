@@ -16,7 +16,7 @@
 
 #include "Z80.h"
 #include "Z80TargetMachine.h"
-#include "llvm\CodeGen\AsmPrinter.h"
+#include "llvm/CodeGen/AsmPrinter.h"
 
 namespace llvm {
 	class Z80AsmPrinter : public AsmPrinter {

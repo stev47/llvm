@@ -20,6 +20,6 @@
 using namespace llvm;
 
 Z80InstrInfo::Z80InstrInfo(Z80TargetMachine &tm)
-	: TM(tm), RI(tm, *this)
+	: RI(tm, *this), TM(tm)
 {
 }

@@ -14,7 +14,7 @@
 #ifndef Z80SELECTIONDAGINFO_H
 #define Z80SELECTIONDAGINFO_H
 
-#include "llvm\Target\TargetSelectionDAGInfo.h"
+#include "llvm/Target/TargetSelectionDAGInfo.h"
 
 namespace llvm {
 	class Z80SelectionDAGInfo: public TargetSelectionDAGInfo {

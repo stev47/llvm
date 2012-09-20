@@ -16,13 +16,13 @@
 #define Z80ISELLOWERING_H
 
 #include "Z80RegisterInfo.h"
-#include "llvm\Target\TargetLowering.h"
+#include "llvm/Target/TargetLowering.h"
 
 namespace llvm {
 	namespace Z80ISD {
 		enum NodeType {
 			FIRST_NUMBER = ISD::BUILTIN_OP_END,
-			RET,
+			RET
 		};
 	} // end namespace Z80ISD
 
