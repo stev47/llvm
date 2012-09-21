@@ -28,6 +28,23 @@ void Z80AsmPrinter::EmitInstruction(const MachineInstr *MI)
 	OutStreamer.EmitRawText(OS.str());
 }
 
+void Z80AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
+	raw_ostream &O, const char *Modifier)
+{
+	const MachineOperand &MO = MI->getOperand(OpNum);
+	switch (MO.getType())
+	{
+	case MachineOperand::MO_Register:
+		O << getRegisterName(MO.getReg());
+		return;
+	case MachineOperand::MO_Immediate:
+		O << MO.getImm();
+		return;
+	default:
+		llvm_unreachable("Not implemented yet!");
+	}
+}
+
 #include "Z80GenAsmWriter.inc"
 
 //===----------------------------------------------------------------------===//

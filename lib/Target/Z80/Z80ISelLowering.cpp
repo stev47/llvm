@@ -15,8 +15,7 @@
 #include "Z80ISelLowering.h"
 #include "Z80.h"
 #include "Z80TargetMachine.h"
-#include "llvm/CodeGen/CallingConvLower.h"
-#include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 using namespace llvm;
 
@@ -44,10 +43,38 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
 }
 
 SDValue Z80TargetLowering::LowerReturn(SDValue Chain,
-										CallingConv::ID CallConv, bool isVarArg,
-										const SmallVectorImpl<ISD::OutputArg> &Outs,
-										const SmallVectorImpl<SDValue> &OutVals,
-										DebugLoc dl, SelectionDAG &DAG) const
+	CallingConv::ID CallConv, bool isVarArg,
+	const SmallVectorImpl<ISD::OutputArg> &Outs,
+	const SmallVectorImpl<SDValue> &OutVals,
+	DebugLoc dl, SelectionDAG &DAG) const
 {
+	SmallVector<CCValAssign, 16> RVLocs;
+	CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		getTargetMachine(), RVLocs, *DAG.getContext());
+	CCInfo.AnalyzeReturn(Outs, RetCC_Z80);
+
+	// Add the regs to the liveout set for the function
+	if (DAG.getMachineFunction().getRegInfo().liveout_empty()) {
+		for (unsigned i = 0; i!= RVLocs.size(); i++)
+			if (RVLocs[i].isRegLoc())
+				DAG.getMachineFunction().getRegInfo().addLiveOut(RVLocs[i].getLocReg());
+	}
+
+	SDValue Flag;
+
+	// Copy the result values into the output registers
+	for (unsigned i = 0; i != RVLocs.size(); i++)
+	{
+		CCValAssign &VA = RVLocs[i];
+		assert(VA.isRegLoc() && "Can only return in registers!");
+
+		Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), OutVals[i], Flag);
+
+		// Guarantee that all emitted copies are stuck together,
+		// avoiding something bad
+		Flag = Chain.getValue(1);
+	}
+	if (Flag.getNode())
+		return DAG.getNode(Z80ISD::RET, dl, MVT::Other, Chain, Flag);
 	return DAG.getNode(Z80ISD::RET, dl, MVT::Other, Chain);
 }

@@ -16,6 +16,8 @@
 #define Z80ISELLOWERING_H
 
 #include "Z80RegisterInfo.h"
+#include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/Target/TargetLowering.h"
 
 namespace llvm {

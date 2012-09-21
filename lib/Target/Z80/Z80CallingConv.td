@@ -16,6 +16,11 @@
 //===----------------------------------------------------------------------===//
 
 def RetCC_Z80 : CallingConv<[
+  // i8 are returned in registers A
+  CCIfType<[i8], CCAssignToReg<[A]>>,
+
+  // i16 are returned in registers HL
+  CCIfType<[i16], CCAssignToReg<[HL]>>
 ]>;
 
 //===----------------------------------------------------------------------===//

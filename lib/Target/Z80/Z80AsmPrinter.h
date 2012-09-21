@@ -26,12 +26,16 @@ namespace llvm {
 			: AsmPrinter(TM, Streamer) {
 				Subtarget = &TM.getSubtarget<Z80Subtarget>();
 		}
-		virtual const char *getPassName() const { return "Z80 Assembly Printer"; }
+		virtual const char *getPassName() const {
+			return "Z80 Assembly Printer";
+		}
 
 		void EmitInstruction(const MachineInstr *MI);
+		void printOperand(const MachineInstr *MI, unsigned OpNum, raw_ostream &O,
+			const char *Modifier = 0);
 
 		// tablegen function declaration
-		void printInstruction(const MachineInstr *MI, raw_ostream &OS);
+		void printInstruction(const MachineInstr *MI, raw_ostream &O);
 		static const char* getRegisterName(unsigned RegNo);
 	}; // end class Z80AsmPrinter
 } // end namespace llvm
