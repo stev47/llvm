@@ -14,10 +14,10 @@
 
 #include "Z80AsmPrinter.h"
 #include "Z80.h"
-#include "llvm\ADT\\SmallString.h"
-#include "llvm\MC\MCStreamer.h"
-#include "llvm\Support\raw_os_ostream.h"
-#include "llvm\Support\TargetRegistry.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/MC/MCStreamer.h"
+#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
 void Z80AsmPrinter::EmitInstruction(const MachineInstr *MI)
