@@ -33,10 +33,6 @@ namespace llvm {
 		void EmitInstruction(const MachineInstr *MI);
 		void printOperand(const MachineInstr *MI, unsigned OpNum, raw_ostream &O,
 			const char *Modifier = 0);
-
-		// tablegen function declaration
-		void printInstruction(const MachineInstr *MI, raw_ostream &O);
-		static const char* getRegisterName(unsigned RegNo);
 	}; // end class Z80AsmPrinter
 } // end namespace llvm
 

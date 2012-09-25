@@ -18,7 +18,9 @@ add_llvm_target(Z80CodeGen
     Z80SelectionDAGInfo.cpp
     Z80Subtarget.cpp
     Z80TargetMachine.cpp
+    Z80MCInstLower.cpp
 )
 
+add_subdirectory(InstPrinter)
 add_subdirectory(TargetInfo)
 add_subdirectory(MCTargetDesc)

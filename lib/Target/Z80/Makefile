@@ -17,6 +17,6 @@ BUILT_SOURCES = Z80GenRegisterInfo.inc Z80GenInstrInfo.inc \
 		Z80GenDAGISel.inc Z80GenCallingConv.inc \
 		Z80GenSubtargetInfo.inc
 
-DIRS = TargetInfo MCTargetDesc
+DIRS = InstPrinter TargetInfo MCTargetDesc
 
 include $(LEVEL)/Makefile.common

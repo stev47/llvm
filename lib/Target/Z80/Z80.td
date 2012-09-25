@@ -44,10 +44,16 @@ include "Z80InstrInfo.td"
 
 def Z80InstrInfo : InstrInfo;
 
+def Z80InstPrinter : AsmWriter {
+  string AsmWriterClassName = "InstPrinter";
+  bit isMCAsmWriter = 1;
+}
+
 //===----------------------------------------------------------------------===//
 // Target Declaration
 //===----------------------------------------------------------------------===//
 
 def Z80 : Target {
   let InstructionSet = Z80InstrInfo;
+  let AssemblyWriters = [Z80InstPrinter];
 }

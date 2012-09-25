@@ -14,18 +14,20 @@
 
 #include "Z80AsmPrinter.h"
 #include "Z80.h"
-#include "llvm/ADT/SmallString.h"
+#include "Z80MCInstLower.h"
+#include "InstPrinter/Z80InstPrinter.h"
+#include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCStreamer.h"
-#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
 void Z80AsmPrinter::EmitInstruction(const MachineInstr *MI)
 {
-	SmallString<128> Str;
-	raw_svector_ostream OS(Str);
-	printInstruction(MI, OS);
-	OutStreamer.EmitRawText(OS.str());
+	Z80MCInstLower MCInstLowering(Mang, *MF, *this);
+
+	MCInst TmpInst;
+	MCInstLowering.Lower(MI, TmpInst);
+	OutStreamer.EmitInstruction(TmpInst);
 }
 
 void Z80AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
@@ -35,7 +37,7 @@ void Z80AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
 	switch (MO.getType())
 	{
 	case MachineOperand::MO_Register:
-		O << getRegisterName(MO.getReg());
+		O << Z80InstPrinter::getRegisterName(MO.getReg());
 		return;
 	case MachineOperand::MO_Immediate:
 		O << MO.getImm();
@@ -44,8 +46,6 @@ void Z80AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
 		llvm_unreachable("Not implemented yet!");
 	}
 }
-
-#include "Z80GenAsmWriter.inc"
 
 //===----------------------------------------------------------------------===//
 // Target Registry Stuff
