@@ -28,4 +28,11 @@ def RetCC_Z80 : CallingConv<[
 //===----------------------------------------------------------------------===//
 
 def CC_Z80 : CallingConv<[
+  // The first 3 integer arguments of non-varargs functions are passed in
+  // integer registers
+  CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[HL, DE, BC]>>>,
+
+  // Integer values get stored in stack slots that are 2 bytes in
+  // size and 2-byte aligned
+  CCIfType<[i16], CCAssignToStack<2, 2>>
 ]>;

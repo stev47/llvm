@@ -34,11 +34,43 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 #include "Z80GenCallingConv.inc"
 
 SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
-										CallingConv::ID CallConv, bool isVarArg,
-										const SmallVectorImpl<ISD::InputArg> &Ins,
-										DebugLoc dl, SelectionDAG &DAG,
-										SmallVectorImpl<SDValue> &InVals) const
+	CallingConv::ID CallConv, bool isVarArg,
+	const SmallVectorImpl<ISD::InputArg> &Ins,
+	DebugLoc dl, SelectionDAG &DAG,
+	SmallVectorImpl<SDValue> &InVals) const
 {
+	MachineFunction &MF = DAG.getMachineFunction();
+	MachineRegisterInfo &MRI = MF.getRegInfo();
+	SmallVector<CCValAssign, 16> ArgLocs;
+	CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		getTargetMachine(), ArgLocs, *DAG.getContext());
+	CCInfo.AnalyzeFormalArguments(Ins, CC_Z80);
+
+	assert(!isVarArg && "Varargs not supported yet");
+
+	for (unsigned i = 0, e = ArgLocs.size(); i != e; i++)
+	{
+		CCValAssign &VA = ArgLocs[i];
+		if (VA.isRegLoc())
+		{	// Argument passed in registers
+			EVT RegVT = VA.getLocVT();
+			switch (RegVT.getSimpleVT().SimpleTy)
+			{
+			default:
+				llvm_unreachable("unknown argument type!");
+			case MVT::i16:
+				unsigned VReg = MRI.createVirtualRegister(Z80::GR16RegisterClass);
+				MRI.addLiveIn(VA.getLocReg(), VReg);
+				SDValue ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+				InVals.push_back(ArgValue);
+				break;
+			}
+		}
+		else
+		{
+			assert(0 && "Not Implemented yet!");
+		}
+	}
 	return Chain;
 }
 
