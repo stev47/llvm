@@ -28,6 +28,8 @@ def RetCC_Z80 : CallingConv<[
 //===----------------------------------------------------------------------===//
 
 def CC_Z80 : CallingConv<[
+  CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[A]>>>,
+
   // The first 3 integer arguments of non-varargs functions are passed in
   // integer registers
   CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[HL, DE, BC]>>>,

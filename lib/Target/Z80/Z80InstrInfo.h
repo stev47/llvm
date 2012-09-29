@@ -29,6 +29,10 @@ namespace llvm {
 		explicit Z80InstrInfo(Z80TargetMachine &tm);
 
 		virtual const Z80RegisterInfo &getRegisterInfo() const { return RI; }
+
+		void copyPhysReg(MachineBasicBlock &MBB,
+			MachineBasicBlock::iterator I, DebugLoc dl,
+			unsigned DestReg, unsigned SrcReg, bool KillSrc) const;
 	}; // end class Z80InstrInfo
 } // end namespace llvm
 

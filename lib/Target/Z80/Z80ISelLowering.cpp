@@ -24,8 +24,11 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 {
 	addRegisterClass(MVT::i8, Z80::GR8RegisterClass);
 	addRegisterClass(MVT::i16, Z80::GR16RegisterClass);
+	addRegisterClass(MVT::i8, Z80::GR8ARegisterClass);
 
 	computeRegisterProperties();
+
+	setStackPointerRegisterToSaveRestore(Z80::SP);
 }
 //===----------------------------------------------------------------------===//
 //                      Calling Convention Implementation
@@ -50,6 +53,9 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
 
 	for (unsigned i = 0, e = ArgLocs.size(); i != e; i++)
 	{
+		SDValue ArgValue;
+		unsigned VReg;
+
 		CCValAssign &VA = ArgLocs[i];
 		if (VA.isRegLoc())
 		{	// Argument passed in registers
@@ -59,9 +65,15 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
 			default:
 				llvm_unreachable("unknown argument type!");
 			case MVT::i16:
-				unsigned VReg = MRI.createVirtualRegister(Z80::GR16RegisterClass);
+				VReg = MRI.createVirtualRegister(Z80::GR16RegisterClass);
 				MRI.addLiveIn(VA.getLocReg(), VReg);
-				SDValue ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+				ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+				InVals.push_back(ArgValue);
+				break;
+			case MVT::i8:
+				VReg = MRI.createVirtualRegister(Z80::GR8RegisterClass);
+				MRI.addLiveIn(VA.getLocReg(), VReg);
+				ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
 				InVals.push_back(ArgValue);
 				break;
 			}

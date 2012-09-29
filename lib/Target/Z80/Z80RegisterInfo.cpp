@@ -37,6 +37,11 @@ const uint16_t* Z80RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) c
 BitVector Z80RegisterInfo::getReservedRegs(const MachineFunction &MF) const
 {
 	BitVector Reserved(getNumRegs());
+
+	Reserved.set(Z80::PC);
+	Reserved.set(Z80::SP);
+	Reserved.set(Z80::FLAGS);
+
 	return Reserved;
 }
 

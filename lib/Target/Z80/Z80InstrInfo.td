@@ -37,6 +37,15 @@ def NOP : Z80Inst<(outs), (ins), "nop", []>;
 //===----------------------------------------------------------------------===//
 //  Load Instructions.
 //
+let neverHasSideEffects = 1 in {
+  def LD8rr : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
+                      "ld\t{$dst, $src}",
+                      []>;
+  def LD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src),
+                       "ld\t{$dst, $src}",
+                       []>;
+}
+
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
   def LD8ri : Z80Inst<(outs GR8:$dst), (ins i8imm:$src),
                       "ld\t{$dst, $src}",
@@ -45,9 +54,6 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
                        "ld\t{$dst, $src}",
                        [(set GR16:$dst, imm:$src)]>;
 }
-def LD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src),
-                     "ld\t{$dst, $src}",
-                     []>;
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions.
@@ -65,8 +71,16 @@ def PUSH16r : Z80Inst<(outs), (ins GR16:$reg),
 //===----------------------------------------------------------------------===//
 // Arithmetic Instructions
 //
-let Constraints = "$src = $dst" in {
+let Constraints = "$src = $dst", Defs = [FLAGS] in {
 def ADD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                       "add\t{$dst, $src2}",
                       []>;
+def ADD8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
+                     "add\t{$dst, $src2}",
+                     [(set GR8A:$dst, (add GR8:$src, GR8:$src2)),
+                     (implicit FLAGS)]>;
+def ADD8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
+                     "add\t{$dst, $src2}",
+                     [(set GR8A:$dst, (add GR8:$src, imm:$src2)),
+                     (implicit FLAGS)]>;
 } // Constraints = "$src = $dst"
