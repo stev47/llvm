@@ -45,7 +45,29 @@ BitVector Z80RegisterInfo::getReservedRegs(const MachineFunction &MF) const
 	return Reserved;
 }
 
-void Z80RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI, int SPAdj, RegScavenger *RS) const
+void Z80RegisterInfo::eliminateCallFramePseudoInstr(MachineFunction &MF,
+	MachineBasicBlock &MBB, MachineBasicBlock::iterator I) const
+{
+	const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+	bool reserveCallFrame = TFI->hasReservedCallFrame(MF);
+	int Opcode = I->getOpcode();
+	bool isDestroy = Opcode == TII.getCallFrameDestroyOpcode();
+	uint64_t CalleAmt = isDestroy ? I->getOperand(1).getImm() : 0;
+
+	if (!reserveCallFrame)
+	{
+		assert(0 && "Not Implemented yet!");
+	}
+
+	if (isDestroy && CalleAmt)
+	{
+			assert(0 && "Not Implemented yet!");
+	}
+	MBB.erase(I);
+}
+
+void Z80RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator I,
+	int SPAdj, RegScavenger *RS) const
 {
 	assert(0 && "Not Implemented yet!");
 }

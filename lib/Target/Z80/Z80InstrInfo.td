@@ -18,22 +18,50 @@
 include "Z80InstrFormats.td"
 
 //===----------------------------------------------------------------------===//
-// Z80 profiles and nodes
+// Z80 Type Profiles.
 //===----------------------------------------------------------------------===//
+def SDT_Z80Call         : SDTypeProfile<0, -1, [SDTCisVT<0, iPTR>]>;
+def SDT_Z80CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i16>]>;
+def SDT_Z80CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
 
-def Z80Ret : SDNode<"Z80ISD::RET", SDTNone, [SDNPHasChain, SDNPOptInGlue]>;
+//===----------------------------------------------------------------------===//
+// Z80 Specific Node Definitions.
+//===----------------------------------------------------------------------===//
+def Z80call          : SDNode<"Z80ISD::CALL", SDT_Z80Call,
+                     [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
+def Z80callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Z80CallSeqStart,
+                     [SDNPHasChain, SDNPOutGlue]>;
+def Z80callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Z80CallSeqEnd,
+                     [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
+def Z80ret           : SDNode<"Z80ISD::RET", SDTNone,
+                     [SDNPHasChain, SDNPOptInGlue]>;
 
 //===----------------------------------------------------------------------===//
 // Instruction list.
 //===----------------------------------------------------------------------===//
 
-let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
-  def RET : Z80Inst<(outs), (ins), "ret", [(Z80Ret)]>;
+let Defs = [SP, FLAGS], Uses = [SP] in {
+  def ADJCALLSTACKDOWN : Z80Inst<(outs), (ins i16imm:$amt),
+                                 "#ADJCALLSTACKDOWN",
+                                 [(Z80callseq_start timm:$amt)]>;
+  def ADJCALLSTACKUP   : Z80Inst<(outs), (ins i16imm:$amt1, i16imm:$amt2),
+                                 "#ADJCALLSTACKUP",
+                                 [(Z80callseq_end timm:$amt1, timm:$amt2)]>;
 }
 
 let neverHasSideEffects = 1 in
 def NOP : Z80Inst<(outs), (ins), "nop", []>;
+//===----------------------------------------------------------------------===//
+//  Call Instructions.
+//
+let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
+  def CALLi : Z80Inst<(outs), (ins i16imm:$dst),
+                      "call\t$dst", [(Z80call imm:$dst)]>;
+}
 
+let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
+  def RET : Z80Inst<(outs), (ins), "ret", [(Z80ret)]>;
+}
 //===----------------------------------------------------------------------===//
 //  Load Instructions.
 //
@@ -84,3 +112,11 @@ def ADD8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
                      [(set GR8A:$dst, (add GR8:$src, imm:$src2)),
                      (implicit FLAGS)]>;
 } // Constraints = "$src = $dst"
+
+//===----------------------------------------------------------------------===//
+//  Non-Instruction Patterns.
+//
+
+// call
+def : Pat<(Z80call (i16 tglobaladdr:$dst)),
+          (CALLi tglobaladdr:$dst)>;

@@ -24,6 +24,7 @@ namespace llvm {
 	namespace Z80ISD {
 		enum NodeType {
 			FIRST_NUMBER = ISD::BUILTIN_OP_END,
+			CALL,
 			RET
 		};
 	} // end namespace Z80ISD
@@ -31,12 +32,23 @@ namespace llvm {
 	class Z80TargetLowering: public TargetLowering {
 	public:
 		explicit Z80TargetLowering(Z80TargetMachine &TM);
+		// getTargetNodeName - This method returns the name of a target specific
+		// DAG node.
+		virtual const char *getTargetNodeName(unsigned Opcode) const;
 		virtual SDValue
 			LowerFormalArguments(SDValue Chain,
 				CallingConv::ID CallConv, bool isVarArg,
 				const SmallVectorImpl<ISD::InputArg> &Ins,
 				DebugLoc dl, SelectionDAG &DAG,
 				SmallVectorImpl<SDValue> &InVals) const;
+		virtual SDValue
+			LowerCall(SDValue Chain, SDValue Callee, CallingConv::ID CallConv,
+			bool isVarArg, bool doesNotRet, bool &isTailCall,
+			const SmallVectorImpl<ISD::OutputArg> &Outs,
+			const SmallVectorImpl<SDValue> &OutVals,
+			const SmallVectorImpl<ISD::InputArg> &Ins,
+			DebugLoc dl, SelectionDAG &DAG,
+			SmallVectorImpl<SDValue> &InVals) const;
 		virtual SDValue
 			LowerReturn(SDValue Chain,
 				CallingConv::ID CallConv, bool isVarArg,

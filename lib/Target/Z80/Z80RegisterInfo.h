@@ -32,8 +32,17 @@ namespace llvm {
 
 		// Code Generation virtual methods...
 		const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
+
 		BitVector getReservedRegs(const MachineFunction &MF) const;
-		void eliminateFrameIndex(MachineBasicBlock::iterator MI, int SPAdj, RegScavenger *RS = NULL) const;
+
+		void eliminateCallFramePseudoInstr(MachineFunction &MF,
+			MachineBasicBlock &MBB,
+			MachineBasicBlock::iterator I) const;
+		void eliminateFrameIndex(MachineBasicBlock::iterator I,
+			int SPAdj,
+			RegScavenger *RS = NULL) const;
+
+		// Degug information queries
 		unsigned getFrameRegister(const MachineFunction &MF) const;
 	}; // end class Z80RegisterInfo
 } // end namespace llvm

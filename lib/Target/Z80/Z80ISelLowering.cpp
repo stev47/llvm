@@ -86,6 +86,59 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
 	return Chain;
 }
 
+SDValue Z80TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
+	CallingConv::ID CallConv, bool isVarArg,
+	bool doesNotRet, bool &isTailCall,
+	const SmallVectorImpl<ISD::OutputArg> &Outs,
+	const SmallVectorImpl<SDValue> &OutVals,
+	const SmallVectorImpl<ISD::InputArg> &Ins,
+	DebugLoc dl, SelectionDAG &DAG,
+	SmallVectorImpl<SDValue> &InVals) const
+{
+	if (isTailCall) llvm_unreachable("Unsupported tail call optimization");
+	
+	SmallVector<CCValAssign, 16> ArgLocs;
+	CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		getTargetMachine(), ArgLocs, *DAG.getContext());
+	CCInfo.AnalyzeCallOperands(Outs, CC_Z80);
+
+	// Get a count of how many bytes are to be pushed on the stack
+	unsigned NumBytes = CCInfo.getNextStackOffset();
+
+	Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(NumBytes, true));
+
+	SmallVector<std::pair<unsigned, SDValue>, 4> RegsToPass;
+	SmallVector<SDValue, 12> MemOpChains;
+
+	// Walk the register/memloc assignments, inserting copies/loads
+	for (unsigned i = 0, e = ArgLocs.size(); i != e; i++)
+	{
+		assert(0 && "Not Implemented yet!");
+	}
+	SDValue InFlag;
+
+	if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
+		Callee = DAG.getTargetGlobalAddress(G->getGlobal(), dl, MVT::i16);
+	else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
+		Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i16);
+
+	// Returns a chain & a flag for retval copy to use
+	SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
+	SmallVector<SDValue, 8> Ops;
+	Ops.push_back(Chain);
+	Ops.push_back(Callee);
+
+	Chain = DAG.getNode(Z80ISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
+	InFlag = Chain.getValue(1);
+
+	// Create the CALLSEQ_END node
+	Chain = DAG.getCALLSEQ_END(Chain,
+		DAG.getIntPtrConstant(NumBytes, true),
+		DAG.getIntPtrConstant(0, true),
+		InFlag);
+	return Chain;
+}
+
 SDValue Z80TargetLowering::LowerReturn(SDValue Chain,
 	CallingConv::ID CallConv, bool isVarArg,
 	const SmallVectorImpl<ISD::OutputArg> &Outs,
@@ -121,4 +174,14 @@ SDValue Z80TargetLowering::LowerReturn(SDValue Chain,
 	if (Flag.getNode())
 		return DAG.getNode(Z80ISD::RET, dl, MVT::Other, Chain, Flag);
 	return DAG.getNode(Z80ISD::RET, dl, MVT::Other, Chain);
+}
+
+const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
+{
+	switch (Opcode)
+	{
+	default: return NULL;
+	case Z80ISD::CALL: return "Z80ISD::CALL";
+	case Z80ISD::RET:  return "Z80ISD::RET";
+	}
 }

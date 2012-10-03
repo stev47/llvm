@@ -58,6 +58,9 @@ void Z80FrameLowering::emitPrologue(MachineFunction &MF) const
 	while (MBBI != MBB.end() && (MBBI->getOpcode() == Z80::PUSH16r))
 		MBBI++;
 
+	if (MBBI != MBB.end())
+		DL = MBBI->getDebugLoc();
+
 	if (NumBytes)
 	{
 		BuildMI(MBB, MBBI, DL, TII.get(Z80::PUSH16r), Z80::IX);

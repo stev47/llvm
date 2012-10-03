@@ -21,7 +21,8 @@
 using namespace llvm;
 
 Z80InstrInfo::Z80InstrInfo(Z80TargetMachine &tm)
-	: RI(tm, *this), TM(tm)
+	: Z80GenInstrInfo(Z80::ADJCALLSTACKDOWN, Z80::ADJCALLSTACKUP),
+	RI(tm, *this), TM(tm)
 {
 }
 
