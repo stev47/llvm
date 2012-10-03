@@ -55,7 +55,7 @@ def NOP : Z80Inst<(outs), (ins), "nop", []>;
 //  Call Instructions.
 //
 let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
-  def CALLi : Z80Inst<(outs), (ins i16imm:$dst),
+  def CALLi : Z80Inst<(outs), (ins i16imm:$dst, variable_ops),
                       "call\t$dst", [(Z80call imm:$dst)]>;
 }
 
