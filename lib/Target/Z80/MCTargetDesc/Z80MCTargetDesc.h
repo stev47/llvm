@@ -16,7 +16,6 @@
 
 namespace llvm {
     class Target;
-    class StringRef;
 
     extern Target TheZ80Target;
 } // end namespace llvm
