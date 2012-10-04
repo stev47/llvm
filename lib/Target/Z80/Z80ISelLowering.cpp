@@ -137,6 +137,31 @@ SDValue Z80TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 		DAG.getIntPtrConstant(NumBytes, true),
 		DAG.getIntPtrConstant(0, true),
 		InFlag);
+	InFlag = Chain.getValue(1);
+
+	return LowerCallResult(Chain, InFlag, CallConv, isVarArg,
+		Ins, dl,DAG, InVals);
+}
+
+SDValue Z80TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
+	CallingConv::ID CallConv, bool isVarArg,
+	const SmallVectorImpl<ISD::InputArg> &Ins,
+	DebugLoc dl, SelectionDAG &DAG,
+	SmallVectorImpl<SDValue> &InVals) const
+{
+	SmallVector<CCValAssign, 16> RVLocs;
+	CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		getTargetMachine(), RVLocs, *DAG.getContext());
+	CCInfo.AnalyzeCallResult(Ins, RetCC_Z80);
+
+	// Copy all of the result registers out of their specified physreg
+	for (unsigned i = 0; i != RVLocs.size(); i++)
+	{
+		Chain = DAG.getCopyFromReg(Chain, dl, RVLocs[i].getLocReg(),
+			RVLocs[i].getValVT(), InFlag).getValue(1);
+		InFlag = Chain.getValue(2);
+		InVals.push_back(Chain.getValue(0));
+	}
 	return Chain;
 }
 

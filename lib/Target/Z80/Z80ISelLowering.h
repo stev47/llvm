@@ -35,6 +35,13 @@ namespace llvm {
 		// getTargetNodeName - This method returns the name of a target specific
 		// DAG node.
 		virtual const char *getTargetNodeName(unsigned Opcode) const;
+	private:
+		SDValue
+			LowerCallResult(SDValue Chain, SDValue InFlag,
+				CallingConv::ID CallConv, bool isVarArg,
+				const SmallVectorImpl<ISD::InputArg> &Ins,
+				DebugLoc dl, SelectionDAG &DAG,
+				SmallVectorImpl<SDValue> &InVals) const;
 		virtual SDValue
 			LowerFormalArguments(SDValue Chain,
 				CallingConv::ID CallConv, bool isVarArg,
@@ -43,12 +50,12 @@ namespace llvm {
 				SmallVectorImpl<SDValue> &InVals) const;
 		virtual SDValue
 			LowerCall(SDValue Chain, SDValue Callee, CallingConv::ID CallConv,
-			bool isVarArg, bool doesNotRet, bool &isTailCall,
-			const SmallVectorImpl<ISD::OutputArg> &Outs,
-			const SmallVectorImpl<SDValue> &OutVals,
-			const SmallVectorImpl<ISD::InputArg> &Ins,
-			DebugLoc dl, SelectionDAG &DAG,
-			SmallVectorImpl<SDValue> &InVals) const;
+				bool isVarArg, bool doesNotRet, bool &isTailCall,
+				const SmallVectorImpl<ISD::OutputArg> &Outs,
+				const SmallVectorImpl<SDValue> &OutVals,
+				const SmallVectorImpl<ISD::InputArg> &Ins,
+				DebugLoc dl, SelectionDAG &DAG,
+				SmallVectorImpl<SDValue> &InVals) const;
 		virtual SDValue
 			LowerReturn(SDValue Chain,
 				CallingConv::ID CallConv, bool isVarArg,
