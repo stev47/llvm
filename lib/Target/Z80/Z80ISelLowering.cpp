@@ -95,7 +95,8 @@ SDValue Z80TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 	DebugLoc dl, SelectionDAG &DAG,
 	SmallVectorImpl<SDValue> &InVals) const
 {
-	if (isTailCall) llvm_unreachable("Unsupported tail call optimization");
+	// Z80 target does not yet support tail call optimization
+	isTailCall = false;
 	
 	SmallVector<CCValAssign, 16> ArgLocs;
 	CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
