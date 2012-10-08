@@ -30,12 +30,38 @@ namespace {
 	#include "Z80GenDAGISel.inc"
 	private:
 		SDNode *Select(SDNode *N);
+		bool SelectAddr(SDValue N, SDValue &Base, SDValue &Disp);
 	}; // end class Z80DAGToDAGISel
 } // end namespace
 
 FunctionPass *llvm::createZ80ISelDag(Z80TargetMachine &TM, CodeGenOpt::Level OptLevel)
 {
 	return new Z80DAGToDAGISel(TM, OptLevel);
+}
+
+bool Z80DAGToDAGISel::SelectAddr(SDValue N, SDValue &Base, SDValue &Disp)
+{
+	switch (N->getOpcode())
+	{
+	default:
+		Base = N;
+		Disp = CurDAG->getTargetConstant(0, MVT::i8);
+		return true;
+	case ISD::ADD:
+		if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(N.getOperand(1)))
+		{
+			if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(N.getOperand(0)))
+			{
+				Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i16);
+			}
+			else
+			{
+				Base = N.getOperand(0);
+			}
+			Disp = CurDAG->getTargetConstant(CN->getZExtValue(), MVT::i8);
+		}
+		return true;
+	}
 }
 
 SDNode *Z80DAGToDAGISel::Select(SDNode *N)

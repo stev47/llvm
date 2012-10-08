@@ -22,7 +22,7 @@
 using namespace llvm;
 
 Z80FrameLowering::Z80FrameLowering(const Z80TargetMachine &tm)
-	: TargetFrameLowering(TargetFrameLowering::StackGrowsDown, 2, -2),
+	: TargetFrameLowering(TargetFrameLowering::StackGrowsDown, 1, -2),
 	TM(tm)
 {
 }

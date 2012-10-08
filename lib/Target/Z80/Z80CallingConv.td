@@ -28,7 +28,13 @@ def RetCC_Z80 : CallingConv<[
 //===----------------------------------------------------------------------===//
 
 def CC_Z80 : CallingConv<[
-  CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[A]>>>,
+  // The first i8 arguments of non-varargs functions are passed in
+  // i8 registers
+  CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[A, B, C]>>>,
+
+  // i8 value get stored in stack slots that are 1 byte in
+  // size and 1-byte aligned
+  CCIfType<[i8], CCAssignToStack<1, 1>>,
 
   // The first 3 integer arguments of non-varargs functions are passed in
   // integer registers

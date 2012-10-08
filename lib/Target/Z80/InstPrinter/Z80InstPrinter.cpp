@@ -47,3 +47,14 @@ void Z80InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 		O << *Op.getExpr();
 	}
 }
+
+void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
+	raw_ostream &O, const char *Modifier)
+{
+	const MCOperand &Base = MI->getOperand(OpNo);
+	const MCOperand &Disp = MI->getOperand(OpNo+1);
+
+	assert(Disp.isImm() && "Expected immediate in displacement field");
+	if (Base.getReg())
+		O << '(' << getRegisterName(Base.getReg()) << '+' << Disp.getImm()<< ')';
+}

@@ -110,13 +110,59 @@ SDValue Z80TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
 	SmallVector<std::pair<unsigned, SDValue>, 4> RegsToPass;
 	SmallVector<SDValue, 12> MemOpChains;
+	SDValue StackPtr;
 
 	// Walk the register/memloc assignments, inserting copies/loads
 	for (unsigned i = 0, e = ArgLocs.size(); i != e; i++)
 	{
-		assert(0 && "Not Implemented yet!");
+		CCValAssign &VA = ArgLocs[i];
+		SDValue Arg = OutVals[i];
+
+		switch (VA.getLocInfo())
+		{
+		default: llvm_unreachable("Unknown loc info!");
+		case CCValAssign::Full: break;
+		case CCValAssign::AExt:
+			Arg = DAG.getNode(ISD::ANY_EXTEND, dl, VA.getLocVT(), Arg);
+			break;
+		}
+
+		// Arguments that can be passed on register must be kept at RegsToPass
+		// vector
+		if (VA.isRegLoc()) {
+			RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
+		}
+		else
+		{
+			assert(VA.isMemLoc());
+
+			if (StackPtr.getNode() == 0)
+				StackPtr = DAG.getCopyFromReg(Chain, dl, Z80::IX, getPointerTy());
+
+			SDValue PtrOff = DAG.getNode(ISD::ADD, dl, getPointerTy(), StackPtr,
+				DAG.getIntPtrConstant(VA.getLocMemOffset()));
+			MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, PtrOff,
+				MachinePointerInfo(), false, false, 0));
+		}
 	}
+
+	// Transform all store nodes into one single node because all store nodes are
+	// independent of each other.
+	if (!MemOpChains.empty()) {
+		Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+			&MemOpChains[0], MemOpChains.size());
+	}
+
+	// Build a sequence of copy-to-reg nodes chained together
+	// with token chain and flag operands which copy the outgoing
+	// args into registers. The InFlag in necessary since all
+	// emitted insturctions must be stuck together.
 	SDValue InFlag;
+	for (unsigned i = 0, e = RegsToPass.size(); i != e; i++)
+	{
+		Chain = DAG.getCopyToReg(Chain, dl, RegsToPass[i].first, RegsToPass[i].second, InFlag);
+		InFlag = Chain.getValue(1);
+	}
 
 	if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
 		Callee = DAG.getTargetGlobalAddress(G->getGlobal(), dl, MVT::i16);
@@ -128,6 +174,14 @@ SDValue Z80TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 	SmallVector<SDValue, 8> Ops;
 	Ops.push_back(Chain);
 	Ops.push_back(Callee);
+
+	// Add argument registers to the end of the list so that they are
+	// known live into the call.
+	for (unsigned i = 0, e = RegsToPass.size(); i != e; i++)
+		Ops.push_back(DAG.getRegister(RegsToPass[i].first, RegsToPass[i].second.getValueType()));
+
+	if (InFlag.getNode())
+		Ops.push_back(InFlag);
 
 	Chain = DAG.getNode(Z80ISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
 	InFlag = Chain.getValue(1);

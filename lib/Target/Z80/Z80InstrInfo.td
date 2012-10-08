@@ -37,6 +37,21 @@ def Z80ret           : SDNode<"Z80ISD::RET", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue]>;
 
 //===----------------------------------------------------------------------===//
+// Z80 Operand Definitions.
+//===----------------------------------------------------------------------===//
+
+// Address operands
+def mem : Operand<i16> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops GR16, i8imm);
+}
+
+//===----------------------------------------------------------------------===//
+// Z80 Complex Pattern Definitions.
+//===----------------------------------------------------------------------===//
+
+def addr : ComplexPattern<iPTR, 2, "SelectAddr", [], []>;
+//===----------------------------------------------------------------------===//
 // Instruction list.
 //===----------------------------------------------------------------------===//
 
@@ -82,6 +97,10 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
                        "ld\t{$dst, $src}",
                        [(set GR16:$dst, imm:$src)]>;
 }
+
+def LD8mi : Z80Inst<(outs), (ins mem:$dst, i8imm:$src),
+                    "ld\t{$dst, $src}",
+                    [(store (i8 imm:$src), addr:$dst)]>;
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions.
