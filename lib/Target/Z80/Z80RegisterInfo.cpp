@@ -14,6 +14,7 @@
 #include "Z80RegisterInfo.h"
 #include "Z80.h"
 #include "Z80TargetMachine.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/ADT/BitVector.h"
 
 #define GET_REGINFO_TARGET_DESC
@@ -69,7 +70,32 @@ void Z80RegisterInfo::eliminateCallFramePseudoInstr(MachineFunction &MF,
 void Z80RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator I,
 	int SPAdj, RegScavenger *RS) const
 {
-	assert(0 && "Not Implemented yet!");
+	assert(SPAdj == 0 && "Unexpected");
+
+	unsigned i = 0;
+	MachineInstr &MI = *I;
+	MachineBasicBlock &MBB = *MI.getParent();
+	MachineFunction &MF = *MBB.getParent();
+	const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+	DebugLoc dl = MI.getDebugLoc();
+
+	while (!MI.getOperand(i).isFI())
+	{
+		i++;
+		assert(i < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
+	}
+
+	int FrameIndex = MI.getOperand(i).getIndex();
+	int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
+	Offset += MF.getFrameInfo()->getStackSize();
+
+	if (!TFI->hasFP(MF))
+	{
+		Offset += 2;
+		MI.getOperand(i).ChangeToRegister(Z80::IX, false);
+		MI.getOperand(i+1).ChangeToImmediate(Offset);
+	}
+	else assert(0 && "Not Implemented yet!");
 }
 
 unsigned Z80RegisterInfo::getFrameRegister(const MachineFunction &MF) const

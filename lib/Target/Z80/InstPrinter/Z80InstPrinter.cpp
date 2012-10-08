@@ -56,5 +56,6 @@ void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
 
 	assert(Disp.isImm() && "Expected immediate in displacement field");
 	if (Base.getReg())
-		O << '(' << getRegisterName(Base.getReg()) << '+' << Disp.getImm()<< ')';
+		if (Disp.getImm() >= 0)	O << '(' << getRegisterName(Base.getReg()) << '+' << Disp.getImm()<< ')';
+		else O << '(' << getRegisterName(Base.getReg()) << Disp.getImm()<< ')';
 }
