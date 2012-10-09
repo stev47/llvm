@@ -28,6 +28,8 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 
 	computeRegisterProperties();
 
+	setOperationAction(ISD::STORE, MVT::i16, Custom);
+
 	setStackPointerRegisterToSaveRestore(Z80::SP);
 }
 //===----------------------------------------------------------------------===//
@@ -264,4 +266,44 @@ const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
 	case Z80ISD::CALL: return "Z80ISD::CALL";
 	case Z80ISD::RET:  return "Z80ISD::RET";
 	}
+}
+
+SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
+{
+	switch (Op.getOpcode()) {
+	case ISD::STORE:	return LowerStore(Op, DAG);
+	default:
+		llvm_unreachable("unimplemented operand");
+	}
+}
+
+SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
+{
+	StoreSDNode *ST = cast<StoreSDNode>(Op);
+	assert(!ST->isTruncatingStore() && "Unexpected store type");
+	assert(ST->getMemoryVT() == MVT::i16 && "Unexpected store EVT");
+	if (allowsUnalignedMemoryAccesses(ST->getMemoryVT()))
+		return SDValue();
+	SDValue Chain = ST->getChain();
+	SDValue BasePtr = ST->getBasePtr();
+	//assert(BasePtr.getOpcode() == ISD::FrameIndex && "LowerStore support only FrameIndex Pointer");
+	DebugLoc dl = ST->getDebugLoc();
+	// Split Value to type i8
+	SDValue Lo = DAG.getConstant(ST->getConstantOperandVal(1) & 0xFF, MVT::i8);
+	SDValue Hi = DAG.getConstant((ST->getConstantOperandVal(1)>>8) & 0xFF, MVT::i8);
+
+	// Separate store High and Low parts of i16
+	SDValue StoreLow = DAG.getStore(Chain, dl, Lo, BasePtr,
+		ST->getPointerInfo(),
+		ST->isVolatile(),
+		ST->isNonTemporal(),
+		ST->getAlignment());
+	SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+		DAG.getConstant(1, MVT::i16));
+	SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
+		ST->getPointerInfo(),
+		ST->isVolatile(),
+		ST->isNonTemporal(),
+		ST->getAlignment());
+	return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
 }

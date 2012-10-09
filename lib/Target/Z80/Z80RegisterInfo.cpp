@@ -88,6 +88,7 @@ void Z80RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator I,
 	int FrameIndex = MI.getOperand(i).getIndex();
 	int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
 	Offset += MF.getFrameInfo()->getStackSize();
+	Offset += MI.getOperand(i+1).getImm();
 
 	if (!TFI->hasFP(MF))
 	{
