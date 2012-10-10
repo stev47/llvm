@@ -286,7 +286,19 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
 		return SDValue();
 	SDValue Chain = ST->getChain();
 	SDValue BasePtr = ST->getBasePtr();
-	//assert(BasePtr.getOpcode() == ISD::FrameIndex && "LowerStore support only FrameIndex Pointer");
+	switch (BasePtr.getOpcode())
+	{
+	default:
+		llvm_unreachable("LowerStore suppory only FrameIndex and CopyFromReg %IX, %IY");
+	case ISD::FrameIndex:
+		break;
+	case ISD::CopyFromReg:
+		SDValue Reg = BasePtr.getOperand(1);
+		if (Reg != DAG.getRegister(Z80::IX, MVT::i16) &&
+			Reg != DAG.getRegister(Z80::IY, MVT::i16))
+			llvm_unreachable("Support CopyFromReg only from %IX, %IY");
+		break;
+	}
 	DebugLoc dl = ST->getDebugLoc();
 	// Split Value to type i8
 	SDValue Lo = DAG.getConstant(ST->getConstantOperandVal(1) & 0xFF, MVT::i8);
