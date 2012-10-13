@@ -15,6 +15,7 @@
 #include "Z80.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCExpr.h"
+#include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/Support/FormattedStream.h"
 using namespace llvm;
 
@@ -31,11 +32,21 @@ void Z80InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
 void Z80InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 	raw_ostream &O, const char *Modifier)
 {
-	assert((Modifier == 0 || Modifier[0] == 0) && "No modifiers supported");
 	const MCOperand &Op = MI->getOperand(OpNo);
 	if (Op.isReg())
 	{
-		O << getRegisterName(Op.getReg());
+		unsigned Reg = Op.getReg();
+		if (Modifier)
+		{
+			StringRef mod(Modifier);
+			if (mod == "sub_8bit_low")
+				Reg = MRI.getSubReg(Reg, Z80::sub_8bit_low);
+			else if (mod == "sub_8bit_hi")
+				Reg = MRI.getSubReg(Reg, Z80::sub_8bit_hi);
+			else
+				llvm_unreachable("Invalid Register Modifier");
+		}
+		O << getRegisterName(Reg);
 	}
 	else if (Op.isImm())
 	{
@@ -55,7 +66,19 @@ void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
 	const MCOperand &Disp = MI->getOperand(OpNo+1);
 
 	assert(Disp.isImm() && "Expected immediate in displacement field");
+
+	unsigned Idx = Disp.getImm();
+	if (Modifier)
+	{
+		unsigned Offset;
+		StringRef(Modifier).getAsInteger(0, Offset);
+		Idx += Offset;
+	}
+
 	if (Base.getReg())
-		if (Disp.getImm() >= 0)	O << '(' << getRegisterName(Base.getReg()) << '+' << Disp.getImm()<< ')';
-		else O << '(' << getRegisterName(Base.getReg()) << Disp.getImm()<< ')';
+	{
+		if (Idx >= 0)	O << '(' << getRegisterName(Base.getReg()) << '+' << Idx<< ')';
+		else O << '(' << getRegisterName(Base.getReg()) << Idx << ')';
+	}
+	else llvm_unreachable("Invalid operand");
 }

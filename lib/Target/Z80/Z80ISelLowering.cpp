@@ -24,7 +24,6 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 {
 	addRegisterClass(MVT::i8, Z80::GR8RegisterClass);
 	addRegisterClass(MVT::i16, Z80::GR16RegisterClass);
-	addRegisterClass(MVT::i8, Z80::GR8ARegisterClass);
 
 	computeRegisterProperties();
 

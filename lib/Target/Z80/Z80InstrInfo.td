@@ -98,9 +98,21 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
                        [(set GR16:$dst, imm:$src)]>;
 }
 
+let canFoldAsLoad = 1, isReMaterializable = 1 in {
+def LD8rm : Z80Inst<(outs GR8:$dst), (ins mem:$src),
+                    "ld\t{$dst, $src}",
+                    [(set GR8:$dst, (load addr:$src))]>;
+def LD16rm : Z80Inst<(outs GR16:$dst), (ins mem:$src),
+                     "ld\t{${dst:sub_8bit_low}, $src}\n\tld\t{${dst:sub_8bit_hi}, ${src:1}}",
+                     [(set GR16:$dst, (load addr:$src))]>;
+}
+
 def LD8mi : Z80Inst<(outs), (ins mem:$dst, i8imm:$src),
                     "ld\t{$dst, $src}",
                     [(store (i8 imm:$src), addr:$dst)]>;
+def LD8mr : Z80Inst<(outs), (ins mem:$dst, GR8:$src),
+                    "ld\t{$dst}, $src}",
+                    [(store GR8:$src, addr:$dst)]>;
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions.
@@ -139,3 +151,4 @@ def ADD8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
 // call
 def : Pat<(Z80call (i16 tglobaladdr:$dst)),
           (CALLi tglobaladdr:$dst)>;
+

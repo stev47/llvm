@@ -48,6 +48,7 @@ bool Z80DAGToDAGISel::SelectAddr(SDValue N, SDValue &Base, SDValue &Disp)
 		Disp = CurDAG->getTargetConstant(0, MVT::i8);
 		return true;
 	case ISD::ADD:
+	case ISD::OR:
 		if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(N.getOperand(1)))
 		{
 			if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(N.getOperand(0)))
