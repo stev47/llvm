@@ -50,7 +50,18 @@ void Z80InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 	}
 	else if (Op.isImm())
 	{
-		O << Op.getImm();
+		int64_t Value = Op.getImm();
+		if (Modifier)
+		{
+			StringRef mod(Modifier);
+			if (mod == "8bit_low")
+				Value &= 0xFF;
+			else if (mod == "8bit_hi")
+				Value = (Value>>8) & 0xFF;
+			else
+				llvm_unreachable("Invalid Immediate Modifier");
+		}
+		O << Value;
 	}
 	else
 	{

@@ -113,6 +113,12 @@ def LD8mi : Z80Inst<(outs), (ins mem:$dst, i8imm:$src),
 def LD8mr : Z80Inst<(outs), (ins mem:$dst, GR8:$src),
                     "ld\t{$dst}, $src}",
                     [(store GR8:$src, addr:$dst)]>;
+def LD16mi : Z80Inst<(outs), (ins mem:$dst, i16imm:$src),
+                     "ld\t{$dst, ${src:8bit_low}}\n\tld\t{${dst:1}, ${src:8bit_hi}}",
+                     [(store (i16 imm:$src), addr:$dst)]>;
+def LD16mr : Z80Inst<(outs), (ins mem:$dst, GR16:$src),
+                     "ld\t{$dst, ${src:sub_8bit_low}}\n\tld\t{${dst:1}, ${src:sub_8bit_hi}}",
+                     [(store GR16:$src, addr:$dst)]>;
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions.

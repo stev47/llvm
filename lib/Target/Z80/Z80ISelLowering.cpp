@@ -27,7 +27,7 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 
 	computeRegisterProperties();
 
-	setOperationAction(ISD::STORE, MVT::i16, Custom);
+	//setOperationAction(ISD::STORE, MVT::i16, Custom);
 
 	setStackPointerRegisterToSaveRestore(Z80::SP);
 }
