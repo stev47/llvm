@@ -140,6 +140,10 @@ let Constraints = "$src = $dst", Defs = [FLAGS] in {
 def ADD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                       "add\t{$dst, $src2}",
                       []>;
+def ADD16HLr : Z80Inst<(outs GR16HL:$dst), (ins GR16:$src, GR16:$src2),
+                       "add\t{$dst, $src2}",
+                       [(set GR16HL:$dst, (add GR16:$src, GR16:$src2)),
+                       (implicit FLAGS)]>;
 def ADD8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
                      "add\t{$dst, $src2}",
                      [(set GR8A:$dst, (add GR8:$src, GR8:$src2)),
@@ -153,6 +157,10 @@ def ADD8Am : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, mem:$src2),
                      [(set GR8A:$dst, (add GR8:$src, (load addr:$src2))),
                      (implicit FLAGS)]>;
 let Uses = [FLAGS] in {
+def ADC16HLr : Z80Inst<(outs GR16HL:$dst), (ins GR16:$src, GR16:$src2),
+                       "adc\t{$dst, $src2}",
+                       [(set GR16HL:$dst, (adde GR16:$src, GR16:$src2)),
+                       (implicit FLAGS)]>;
 def ADC8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
                      "adc\t{$dst, $src2}",
                      [(set GR8A:$dst, (adde GR8:$src, GR8:$src2)),
@@ -177,6 +185,8 @@ def : Pat<(Z80call (i16 tglobaladdr:$dst)),
           (CALLi tglobaladdr:$dst)>;
 
 // add always produce carry
+def : Pat<(addc GR16:$src, GR16:$src2),
+          (ADD16HLr GR16:$src, GR16:$src2)>;
 def : Pat<(addc GR8:$src, GR8:$src2),
           (ADD8Ar GR8:$src, GR8:$src2)>;
 def : Pat<(addc GR8:$src, imm:$src2),
