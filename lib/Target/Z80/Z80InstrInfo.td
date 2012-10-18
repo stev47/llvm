@@ -144,6 +144,7 @@ def ADD16HLr : Z80Inst<(outs GR16HL:$dst), (ins GR16:$src, GR16:$src2),
                        "add\t{$dst, $src2}",
                        [(set GR16HL:$dst, (add GR16:$src, GR16:$src2)),
                        (implicit FLAGS)]>;
+let isCommutable = 1 in
 def ADD8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
                      "add\t{$dst, $src2}",
                      [(set GR8A:$dst, (add GR8:$src, GR8:$src2)),
@@ -174,6 +175,33 @@ def ADC8Am : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, mem:$src2),
                      [(set GR8A:$dst, (adde GR8:$src, (load addr:$src2))),
                      (implicit FLAGS)]>;
 } // Uses = [FLAGS]
+let isCommutable = 1 in // X = AND Y, Z == X AND Z, Y
+def AND8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
+                     "and\t{$src2}",
+                     [(set GR8A:$dst, (and GR8:$src, GR8:$src2)),
+                     (implicit FLAGS)]>;
+def AND8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
+                     "and\t{$src2}",
+                     [(set GR8A:$dst, (and GR8:$src, imm:$src2)),
+                     (implicit FLAGS)]>;
+let isCommutable = 1 in // X = OR Y, Z == X OR Z, Y
+def OR8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
+                     "or\t{$src2}",
+                     [(set GR8A:$dst, (or GR8:$src, GR8:$src2)),
+                     (implicit FLAGS)]>;
+def OR8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
+                     "or\t{$src2}",
+                     [(set GR8A:$dst, (or GR8:$src, imm:$src2)),
+                     (implicit FLAGS)]>;
+let isCommutable = 1 in // X = XOR Y, Z == X XOR Z, Y
+def XOR8Ar : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, GR8:$src2),
+                     "xor\t{$src2}",
+                     [(set GR8A:$dst, (xor GR8:$src, GR8:$src2)),
+                     (implicit FLAGS)]>;
+def XOR8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
+                     "xor\t{$src2}",
+                     [(set GR8A:$dst, (xor GR8:$src, imm:$src2)),
+                     (implicit FLAGS)]>;
 } // Constraints = "$src = $dst"
 
 //===----------------------------------------------------------------------===//
