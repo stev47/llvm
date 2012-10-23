@@ -13,6 +13,7 @@
 
 #include "Z80InstPrinter.h"
 #include "Z80.h"
+#include "Z80InstrInfo.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCRegisterInfo.h"
@@ -92,4 +93,31 @@ void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
 		else O << '(' << getRegisterName(Base.getReg()) << Idx << ')';
 	}
 	else llvm_unreachable("Invalid operand");
+}
+
+void Z80InstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
+	raw_ostream &O, const char *Modifier)
+{
+	const MCOperand &Op = MI->getOperand(OpNo);
+	assert(Op.isExpr() && "unknown pcrel operand");
+	O << *Op.getExpr();
+}
+
+void Z80InstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
+	raw_ostream &O, const char *Modifier)
+{
+	const MCOperand &Op = MI->getOperand(OpNo);
+	assert(Op.isImm() && "Invalid CC operand");
+
+	const char *cond;
+
+	switch (Op.getImm())
+	{
+	default:
+		llvm_unreachable("Invalid CC operand");
+	case Z80::COND_NZ:
+		cond = "NZ";
+		break;
+	}
+	O << cond;
 }

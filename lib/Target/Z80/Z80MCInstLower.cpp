@@ -52,6 +52,10 @@ void Z80MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const
 		case MachineOperand::MO_GlobalAddress:
 			MCOp = LowerSymbolOperand(MO, GetSymbolFromOperand(MO));
 			break;
+		case MachineOperand::MO_MachineBasicBlock:
+			MCOp = MCOperand::CreateExpr(MCSymbolRefExpr::Create(
+				MO.getMBB()->getSymbol(), Ctx));
+			break;
 		}
 		OutMI.addOperand(MCOp);
 	}

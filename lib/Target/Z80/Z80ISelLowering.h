@@ -25,7 +25,10 @@ namespace llvm {
 		enum NodeType {
 			FIRST_NUMBER = ISD::BUILTIN_OP_END,
 			CALL,
-			RET
+			RET,
+			SELECT_CC,
+			CP,
+			JPCC
 		};
 	} // end namespace Z80ISD
 
@@ -40,7 +43,14 @@ namespace llvm {
 		// DAG node.
 		virtual const char *getTargetNodeName(unsigned Opcode) const;
 
+		// getSetCCResultType - Return the value type to use for ISD::SETCC.
+		virtual EVT getSetCCResultType(EVT VT) const;
+
 		SDValue LowerStore(SDValue Op, SelectionDAG &DAG) const;
+		SDValue LowerSelectCC(SDValue Op, SelectionDAG &DAG) const;
+
+		MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
+			MachineBasicBlock *MBB) const;
 	private:
 		SDValue
 			LowerCallResult(SDValue Chain, SDValue InFlag,

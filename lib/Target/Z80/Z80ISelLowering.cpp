@@ -15,6 +15,7 @@
 #include "Z80ISelLowering.h"
 #include "Z80.h"
 #include "Z80TargetMachine.h"
+#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 using namespace llvm;
@@ -27,6 +28,14 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 
 	computeRegisterProperties();
 
+	setBooleanContents(ZeroOrOneBooleanContent);
+
+	setLoadExtAction(ISD::EXTLOAD, MVT::i1, Promote);
+	setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
+	setLoadExtAction(ISD::ZEXTLOAD, MVT::i1, Promote);
+
+	setOperationAction(ISD::SELECT, MVT::i8, Expand);
+	setOperationAction(ISD::SELECT_CC, MVT::i8, Custom);
 	//setOperationAction(ISD::STORE, MVT::i16, Custom);
 
 	setStackPointerRegisterToSaveRestore(Z80::SP);
@@ -262,15 +271,18 @@ const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
 	switch (Opcode)
 	{
 	default: return NULL;
-	case Z80ISD::CALL: return "Z80ISD::CALL";
-	case Z80ISD::RET:  return "Z80ISD::RET";
+	case Z80ISD::CALL:      return "Z80ISD::CALL";
+	case Z80ISD::RET:       return "Z80ISD::RET";
+	case Z80ISD::SELECT_CC: return "Z80ISD::SELECT_CC";
+	case Z80ISD::CP:        return "Z80ISD::CP";
 	}
 }
 
 SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {
 	switch (Op.getOpcode()) {
-	case ISD::STORE:	return LowerStore(Op, DAG);
+	case ISD::STORE:	 return LowerStore(Op, DAG);
+	case ISD::SELECT_CC: return LowerSelectCC(Op, DAG);
 	default:
 		llvm_unreachable("unimplemented operand");
 	}
@@ -317,4 +329,93 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
 		ST->isNonTemporal(),
 		ST->getAlignment());
 	return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
+}
+
+static SDValue EmitCMP(SDValue &LHS, SDValue &RHS, SDValue &TargetCC,
+	ISD::CondCode CC,
+	DebugLoc dl, SelectionDAG &DAG)
+{
+	assert(!LHS.getValueType().isFloatingPoint() && "We don't handle FP yet");
+
+	Z80::CondCode TCC = Z80::COND_INVALID;
+	switch (CC)
+	{
+	case ISD::SETNE: // aka COND_NZ
+		TCC = Z80::COND_NZ;
+		break;
+	default: llvm_unreachable("Invalid integer condition!");
+	}
+	TargetCC = DAG.getConstant(TCC, MVT::i8);
+	return DAG.getNode(Z80ISD::CP, dl, MVT::Glue, LHS, RHS);
+}
+
+SDValue Z80TargetLowering::LowerSelectCC(SDValue Op, SelectionDAG &DAG) const
+{
+	SDValue LHS      = Op.getOperand(0);
+	SDValue RHS      = Op.getOperand(1);
+	SDValue TrueV    = Op.getOperand(2);
+	SDValue FalseV   = Op.getOperand(3);
+	ISD::CondCode CC = cast<CondCodeSDNode>(Op.getOperand(4))->get();
+	DebugLoc dl      = Op.getDebugLoc();
+
+	SDValue TargetCC;
+	SDValue Flag = EmitCMP(LHS, RHS, TargetCC, CC, dl, DAG);
+
+	SDVTList VTs = DAG.getVTList(Op.getValueType(), MVT::Glue);
+	SmallVector<SDValue, 4> Ops;
+	Ops.push_back(TrueV);
+	Ops.push_back(FalseV);
+	Ops.push_back(TargetCC);
+	Ops.push_back(Flag);
+
+	return DAG.getNode(Z80ISD::SELECT_CC, dl, VTs, &Ops[0], Ops.size());
+}
+
+EVT Z80TargetLowering::getSetCCResultType(EVT VT) const
+{
+	if (!VT.isVector()) return MVT::i8;
+	return VT.changeVectorElementTypeToInteger();
+}
+
+MachineBasicBlock* Z80TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
+	MachineBasicBlock *MBB) const
+{
+	unsigned Opc = MI->getOpcode();
+	DebugLoc dl = MI->getDebugLoc();
+	const TargetInstrInfo &TII = *getTargetMachine().getInstrInfo();
+
+	assert((Opc == Z80::SELECT8) && "Unexpected instr type to insert");
+
+	const BasicBlock *LLVM_BB = MBB->getBasicBlock();
+	MachineFunction::iterator MFI = MBB;
+	MFI++;
+
+	MachineBasicBlock *thisMBB = MBB;
+	MachineFunction *MF = MBB->getParent();
+	MachineBasicBlock *copy0MBB = MF->CreateMachineBasicBlock(LLVM_BB);
+	MachineBasicBlock *copy1MBB = MF->CreateMachineBasicBlock(LLVM_BB);
+	MF->insert(MFI, copy0MBB);
+	MF->insert(MFI, copy1MBB);
+
+	copy1MBB->splice(copy1MBB->begin(), MBB,
+		llvm::next(MachineBasicBlock::iterator(MI)), MBB->end());
+	copy1MBB->transferSuccessorsAndUpdatePHIs(MBB);
+	MBB->addSuccessor(copy0MBB);
+	MBB->addSuccessor(copy1MBB);
+
+	BuildMI(MBB, dl, TII.get(Z80::JPCC))
+		.addMBB(copy1MBB)
+		.addImm(MI->getOperand(3).getImm());
+
+	MBB = copy0MBB;
+	MBB->addSuccessor(copy1MBB);
+
+	MBB = copy1MBB;
+	BuildMI(*MBB, MBB->begin(), dl, TII.get(Z80::PHI),
+		MI->getOperand(0).getReg())
+		.addReg(MI->getOperand(2).getReg()).addMBB(copy0MBB)
+		.addReg(MI->getOperand(1).getReg()).addMBB(thisMBB);
+
+	MI->eraseFromParent();
+	return MBB;
 }

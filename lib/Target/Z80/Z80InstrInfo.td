@@ -23,7 +23,12 @@ include "Z80InstrFormats.td"
 def SDT_Z80Call         : SDTypeProfile<0, -1, [SDTCisVT<0, iPTR>]>;
 def SDT_Z80CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i16>]>;
 def SDT_Z80CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
-
+def SDT_Z80Cp           : SDTypeProfile<0, 2, [SDTCisSameAs<0, 1>]>;
+def SDT_Z80SelectCC     : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
+                                               SDTCisSameAs<1, 2>,
+                                               SDTCisVT<3, i8>]>;
+def SDT_Z80BrCC         : SDTypeProfile<0, 2, [SDTCisVT<0, OtherVT>,
+                                               SDTCisVT<1, i8>]>;
 //===----------------------------------------------------------------------===//
 // Z80 Specific Node Definitions.
 //===----------------------------------------------------------------------===//
@@ -35,7 +40,11 @@ def Z80callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Z80CallSeqEnd,
                      [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 def Z80ret           : SDNode<"Z80ISD::RET", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue]>;
-
+def Z80cp            : SDNode<"Z80ISD::CP", SDT_Z80Cp, [SDNPOutGlue]>;
+def Z80selectcc      : SDNode<"Z80ISD::SELECT_CC", SDT_Z80SelectCC,
+                     [SDNPInGlue]>;
+def Z80brcc          : SDNode<"Z80ISD::JPCC", SDT_Z80BrCC,
+                     [SDNPHasChain, SDNPInGlue]>;
 //===----------------------------------------------------------------------===//
 // Z80 Operand Definitions.
 //===----------------------------------------------------------------------===//
@@ -46,22 +55,49 @@ def mem : Operand<i16> {
   let MIOperandInfo = (ops GR16, i8imm);
 }
 
+def jmptarget : Operand<OtherVT> {
+  let PrintMethod = "printPCRelImmOperand";
+}
+
+def cc : Operand<i8> {
+  let PrintMethod = "printCCOperand";
+}
+
 //===----------------------------------------------------------------------===//
 // Z80 Complex Pattern Definitions.
 //===----------------------------------------------------------------------===//
 
 def addr : ComplexPattern<iPTR, 2, "SelectAddr", [], []>;
 //===----------------------------------------------------------------------===//
+// Pattern fragments.
+//===----------------------------------------------------------------------===//
+
+def Z80_COND_NZ : PatLeaf<(i8 0)>;
+def Z80_COND_Z  : PatLeaf<(i8 1)>;
+def Z80_COND_NC : PatLeaf<(i8 2)>;
+def Z80_COND_C  : PatLeaf<(i8 3)>;
+def Z80_COND_PO : PatLeaf<(i8 4)>;
+def Z80_COND_PE : PatLeaf<(i8 5)>;
+def Z80_COND_P  : PatLeaf<(i8 6)>;
+def Z80_COND_M  : PatLeaf<(i8 7)>;
+
+//===----------------------------------------------------------------------===//
 // Instruction list.
 //===----------------------------------------------------------------------===//
 
 let Defs = [SP, FLAGS], Uses = [SP] in {
   def ADJCALLSTACKDOWN : Z80Inst<(outs), (ins i16imm:$amt),
-                                 "#ADJCALLSTACKDOWN",
+                                 "; ADJCALLSTACKDOWN",
                                  [(Z80callseq_start timm:$amt)]>;
   def ADJCALLSTACKUP   : Z80Inst<(outs), (ins i16imm:$amt1, i16imm:$amt2),
-                                 "#ADJCALLSTACKUP",
+                                 "; ADJCALLSTACKUP",
                                  [(Z80callseq_end timm:$amt1, timm:$amt2)]>;
+}
+
+let usesCustomInserter = 1 in {
+  def SELECT8 : Z80Inst<(outs GR8:$dst), (ins GR8:$src, GR8:$src2, i8imm:$cc),
+                        "; Select8 Pseudo",
+                        [(set GR8:$dst, (Z80selectcc GR8:$src, GR8:$src2, imm:$cc))]>;
 }
 
 let neverHasSideEffects = 1 in
@@ -76,6 +112,13 @@ let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
 
 let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
   def RET : Z80Inst<(outs), (ins), "ret", [(Z80ret)]>;
+}
+
+let isBranch = 1, isTerminator = 1 in {
+let Uses = [FLAGS] in
+  def JPCC : Z80Inst<(outs), (ins jmptarget:$dst, cc:$cc),
+                     "jp\t{$cc,$dst}",
+                     [(Z80brcc bb:$dst, imm:$cc)]>;
 }
 //===----------------------------------------------------------------------===//
 //  Load Instructions.
@@ -203,6 +246,16 @@ def XOR8Ai : Z80Inst<(outs GR8A:$dst), (ins GR8:$src, i8imm:$src2),
                      [(set GR8A:$dst, (xor GR8:$src, imm:$src2)),
                      (implicit FLAGS)]>;
 } // Constraints = "$src = $dst"
+
+let Defs = [FLAGS] in {
+def CP8Ar : Z80Inst<(outs), (ins GR8A:$src, GR8:$src2),
+                    "cp\t{$src2}",
+                    [(Z80cp GR8A:$src, GR8:$src2)]>;
+
+def CP8Ai : Z80Inst<(outs), (ins GR8A:$src, i8imm:$src2),
+                    "cp\t{$src2}",
+                    [(Z80cp GR8A:$src, imm:$src2)]>;
+} // Defs = [FLAGS]
 
 //===----------------------------------------------------------------------===//
 //  Non-Instruction Patterns.

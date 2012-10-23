@@ -33,6 +33,10 @@ namespace llvm {
 			const char *Modifier = 0);
 		void printMemOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O,
 			const char *Modifier = 0);
+		void printPCRelImmOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O,
+			const char *Modifier = 0);
+		void printCCOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O,
+			const char *Modifier = 0);
 	}; // end class Z80InstPrinter
 } // end namespace llvm
 
