@@ -48,6 +48,6 @@ let Namespace = "Z80" in {
   def GR16 : RegisterClass<"Z80", [i16], 8, (add BC, DE, HL, IX, IY, PC, SP)> {
     let SubRegClasses = [(GR8 sub_8bit_hi, sub_8bit_low)];
   }
-  def GR8A : RegisterClass<"Z80", [i8], 8, (add A)>;
+  def ACC : RegisterClass<"Z80", [i8], 8, (add A)>;
   def GR16HL : RegisterClass<"Z80", [i16], 8, (add HL)>;
 }

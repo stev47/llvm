@@ -13,6 +13,8 @@
 
 #include "Z80InstrInfo.h"
 #include "Z80.h"
+#include "Z80TargetMachine.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 
 #define GET_INSTRINFO_CTOR
@@ -38,4 +40,64 @@ void Z80InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 
 	BuildMI(MBB, I, dl, get(Opc), DestReg)
 		.addReg(SrcReg, getKillRegState(KillSrc));
+}
+
+void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
+	MachineBasicBlock::iterator MI,
+	unsigned SrcReg, bool isKill, int FrameIndex,
+	const TargetRegisterClass *RC,
+	const TargetRegisterInfo *TRI) const
+{
+	DebugLoc dl;
+	if (MI != MBB.end()) dl = MI->getDebugLoc();
+	MachineFunction &MF = *MBB.getParent();
+	MachineFrameInfo &MFI = *MF.getFrameInfo();
+
+	MachineMemOperand *MMO = MF.getMachineMemOperand(
+		MachinePointerInfo::getFixedStack(FrameIndex),
+		MachineMemOperand::MOStore,
+		MFI.getObjectSize(FrameIndex),
+		MFI.getObjectAlignment(FrameIndex));
+
+	unsigned Opc;
+
+	if (RC == &Z80::ACCRegClass)
+		Opc = Z80::LD8mr;
+	else
+		llvm_unreachable("Cannot store this register to stack slot!");
+
+	BuildMI(MBB, MI, dl, get(Opc))
+		.addFrameIndex(FrameIndex).addImm(0)
+		.addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
+	MF.dump();
+}
+
+void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
+	MachineBasicBlock::iterator MI,
+	unsigned DestReg,  int FrameIndex,
+	const TargetRegisterClass *RC,
+	const TargetRegisterInfo *TRI) const
+{
+	DebugLoc dl;
+	if (MI != MBB.end()) dl = MI->getDebugLoc();
+	MachineFunction &MF = *MBB.getParent();
+	MachineFrameInfo &MFI = *MF.getFrameInfo();
+
+	MachineMemOperand *MMO = MF.getMachineMemOperand(
+		MachinePointerInfo::getFixedStack(FrameIndex),
+		MachineMemOperand::MOLoad,
+		MFI.getObjectSize(FrameIndex),
+		MFI.getObjectAlignment(FrameIndex));
+
+	unsigned Opc;
+
+	if (RC == &Z80::ACCRegClass)
+		Opc = Z80::LD8rm;
+	else
+		llvm_unreachable("Cannot store this register to stack slot!");
+
+	BuildMI(MBB, MI, dl, get(Opc))
+		.addReg(DestReg)
+		.addFrameIndex(FrameIndex).addImm(0).addMemOperand(MMO);
+	MF.dump();
 }

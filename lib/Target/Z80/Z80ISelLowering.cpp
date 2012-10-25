@@ -387,15 +387,15 @@ MachineBasicBlock* Z80TargetLowering::EmitInstrWithCustomInserter(MachineInstr *
 	assert((Opc == Z80::SELECT8) && "Unexpected instr type to insert");
 
 	const BasicBlock *LLVM_BB = MBB->getBasicBlock();
-	MachineFunction::iterator MFI = MBB;
-	MFI++;
+	MachineFunction::iterator I = MBB;
+	I++;
 
 	MachineBasicBlock *thisMBB = MBB;
 	MachineFunction *MF = MBB->getParent();
 	MachineBasicBlock *copy0MBB = MF->CreateMachineBasicBlock(LLVM_BB);
 	MachineBasicBlock *copy1MBB = MF->CreateMachineBasicBlock(LLVM_BB);
-	MF->insert(MFI, copy0MBB);
-	MF->insert(MFI, copy1MBB);
+	MF->insert(I, copy0MBB);
+	MF->insert(I, copy1MBB);
 
 	copy1MBB->splice(copy1MBB->begin(), MBB,
 		llvm::next(MachineBasicBlock::iterator(MI)), MBB->end());

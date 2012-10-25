@@ -15,6 +15,8 @@
 #include "Z80.h"
 #include "Z80TargetMachine.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 using namespace llvm;
 
 namespace {
@@ -72,8 +74,37 @@ bool Z80DAGToDAGISel::SelectAddr(SDValue N, SDValue &Base, SDValue &Disp)
 	}
 }
 
-SDNode *Z80DAGToDAGISel::Select(SDNode *N)
+SDNode *Z80DAGToDAGISel::Select(SDNode *Node)
 {
-	SDNode *ResNode = SelectCode(N);
+	DebugLoc dl = Node->getDebugLoc();
+	
+	// Dump information about the Node being selected
+	DEBUG(errs() << "Selecting: ");
+	DEBUG(Node->dump(CurDAG));
+	DEBUG(errs() << "\n");
+
+	// If we have a custom node, we already have selected
+	if (Node->isMachineOpcode()) {
+		DEBUG(errs() << "== ";
+		Node->dump(CurDAG);
+		errs() << "\n");
+		return NULL;
+	}
+
+	switch (Node->getOpcode())
+	{
+	default: break;
+	}
+
+	// Select the default instruction
+	SDNode *ResNode = SelectCode(Node);
+
+	DEBUG(errs() << "=> ");
+	if (ResNode == NULL || ResNode == Node)
+		DEBUG(Node->dump(CurDAG));
+	else
+		DEBUG(ResNode->dump(CurDAG));
+	DEBUG(errs() << "\n");
+
 	return ResNode;
 }

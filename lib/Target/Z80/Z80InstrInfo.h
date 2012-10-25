@@ -47,6 +47,19 @@ namespace llvm {
 		void copyPhysReg(MachineBasicBlock &MBB,
 			MachineBasicBlock::iterator I, DebugLoc dl,
 			unsigned DestReg, unsigned SrcReg, bool KillSrc) const;
+
+		virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+			MachineBasicBlock::iterator MI,
+			unsigned SrcReg, bool isKill,
+			int FrameIndex,
+			const TargetRegisterClass *RC,
+			const TargetRegisterInfo *TRI) const;
+		virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
+			MachineBasicBlock::iterator MI,
+			unsigned DstReg, int FrameIndex,
+			const TargetRegisterClass *RC,
+			const TargetRegisterInfo *TRI) const;
+
 	}; // end class Z80InstrInfo
 } // end namespace llvm
 
