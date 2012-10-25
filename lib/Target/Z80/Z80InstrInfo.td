@@ -221,7 +221,33 @@ def ADC8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
                      [(set ACC:$dst, (adde GR8:$src, (load addr:$src2))),
                      (implicit FLAGS)]>;
 } // Uses = [FLAGS]
-let isCommutable = 1 in // X = AND Y, Z == X AND Z, Y
+def SUB8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
+                     "sub\t{$src2}",
+                     [(set ACC:$dst, (sub GR8:$src, GR8:$src2)),
+                     (implicit FLAGS)]>;
+def SUB8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
+                     "sub\t{$src2}",
+                     [(set ACC:$dst, (sub GR8:$src, imm:$src2)),
+                     (implicit FLAGS)]>;
+def SUB8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
+                     "sub\t{$src2}",
+                     [(set ACC:$dst, (sub GR8:$src, (load addr:$src2))),
+                     (implicit FLAGS)]>;
+let Uses = [FLAGS] in {
+def SBC8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
+                     "sbc\t{$dst, $src2}",
+                     [(set ACC:$dst, (sube GR8:$src, GR8:$src2)),
+                     (implicit FLAGS)]>;
+def SBC8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
+                     "sbc\t{$dst, $src2}",
+                     [(set ACC:$dst, (sube GR8:$src, imm:$src2)),
+                     (implicit FLAGS)]>;
+def SBC8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
+                     "sbc\t{$dst, $src2}",
+                     [(set ACC:$dst, (sube GR8:$src, (load addr:$src2))),
+                     (implicit FLAGS)]>;
+} // Uses = [FLAGS]
+let isCommutable = 1 in // X = AND Y, Z == X = AND Z, Y
 def AND8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
                      "and\t{$src2}",
                      [(set ACC:$dst, (and GR8:$src, GR8:$src2)),
@@ -234,7 +260,7 @@ def AND8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
                      "and\t{$src2}",
                      [(set ACC:$dst, (and GR8:$src, (load addr:$src2))),
                      (implicit FLAGS)]>;
-let isCommutable = 1 in // X = OR Y, Z == X OR Z, Y
+let isCommutable = 1 in // X = OR Y, Z == X = OR Z, Y
 def OR8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
                      "or\t{$src2}",
                      [(set ACC:$dst, (or GR8:$src, GR8:$src2)),
@@ -247,7 +273,7 @@ def OR8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
                      "or\t{$src2}",
                      [(set ACC:$dst, (or GR8:$src, (load addr:$src2))),
                      (implicit FLAGS)]>;
-let isCommutable = 1 in // X = XOR Y, Z == X XOR Z, Y
+let isCommutable = 1 in // X = XOR Y, Z == X = XOR Z, Y
 def XOR8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
                      "xor\t{$src2}",
                      [(set ACC:$dst, (xor GR8:$src, GR8:$src2)),
@@ -292,7 +318,7 @@ def CP8Ai : Z80Inst<(outs), (ins ACC:$src, i8imm:$src2),
 def : Pat<(Z80call (i16 tglobaladdr:$dst)),
           (CALLi tglobaladdr:$dst)>;
 
-// add always produce carry
+// add and sub always produce carry
 def : Pat<(addc GR16:$src, GR16:$src2),
           (ADD16HLr GR16:$src, GR16:$src2)>;
 def : Pat<(addc GR8:$src, GR8:$src2),
@@ -301,3 +327,10 @@ def : Pat<(addc GR8:$src, imm:$src2),
           (ADD8Ai GR8:$src, imm:$src2)>;
 def : Pat<(addc GR8:$src, (load addr:$src2)),
           (ADD8Am GR8:$src, addr:$src2)>;
+
+def : Pat<(subc GR8:$src, GR8:$src2),
+          (SUB8Ar GR8:$src, GR8:$src2)>;
+def : Pat<(subc GR8:$src, imm:$src2),
+          (SUB8Ai GR8:$src, imm:$src2)>;
+def : Pat<(subc GR8:$src, (load addr:$src2)),
+          (SUB8Am GR8:$src, addr:$src2)>;
