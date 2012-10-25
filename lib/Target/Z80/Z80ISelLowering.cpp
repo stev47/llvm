@@ -34,6 +34,9 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 	setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
 	setLoadExtAction(ISD::ZEXTLOAD, MVT::i1, Promote);
 
+	setOperationAction(ISD::SRL, MVT::i8, Custom);
+	setOperationAction(ISD::SHL, MVT::i8, Custom);
+	setOperationAction(ISD::SRA, MVT::i8, Custom);
 	setOperationAction(ISD::SELECT, MVT::i8, Expand);
 	setOperationAction(ISD::SELECT_CC, MVT::i8, Custom);
 	//setOperationAction(ISD::STORE, MVT::i16, Custom);
@@ -283,6 +286,9 @@ SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
 	switch (Op.getOpcode()) {
 	case ISD::STORE:	 return LowerStore(Op, DAG);
 	case ISD::SELECT_CC: return LowerSelectCC(Op, DAG);
+	case ISD::SRL:
+	case ISD::SHL:
+	case ISD::SRA:       return LowerShifts(Op, DAG);
 	default:
 		llvm_unreachable("unimplemented operand");
 	}
@@ -418,4 +424,37 @@ MachineBasicBlock* Z80TargetLowering::EmitInstrWithCustomInserter(MachineInstr *
 
 	MI->eraseFromParent();
 	return MBB;
+}
+
+SDValue Z80TargetLowering::LowerShifts(SDValue Op, SelectionDAG &DAG) const
+{
+	unsigned Opc = Op.getOpcode();
+	SDNode *N = Op.getNode();
+	EVT VT = Op.getValueType();
+	DebugLoc dl = Op.getDebugLoc();
+
+	assert((VT == MVT::i8) && "This type of shifts is not implemented yet!");
+	assert(isa<ConstantSDNode>(N->getOperand(1)) && "Non constant shifts are not implemented yet!");
+
+	uint64_t ShiftAmount = cast<ConstantSDNode>(N->getOperand(1))->getZExtValue();
+	SDValue Victim = N->getOperand(0);
+
+	switch (Opc)
+	{
+	default: llvm_unreachable("Invalid shift opcode");
+	case ISD::SRL:
+		Opc = Z80ISD::SRL;
+		break;
+	case ISD::SHL:
+		Opc = Z80ISD::SLA;
+		break;
+	case ISD::SRA:
+		Opc = Z80ISD::SRA;
+		break;
+	}
+
+	while (ShiftAmount--)
+		Victim = DAG.getNode(Opc, dl, VT, Victim);
+
+	return Victim;
 }

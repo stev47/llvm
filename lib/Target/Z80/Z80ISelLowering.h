@@ -28,7 +28,10 @@ namespace llvm {
 			RET,
 			SELECT_CC,
 			CP,
-			JPCC
+			JPCC,
+			SRL,
+			SLA,
+			SRA
 		};
 	} // end namespace Z80ISD
 
@@ -48,6 +51,7 @@ namespace llvm {
 
 		SDValue LowerStore(SDValue Op, SelectionDAG &DAG) const;
 		SDValue LowerSelectCC(SDValue Op, SelectionDAG &DAG) const;
+		SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
 
 		MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
 			MachineBasicBlock *MBB) const;

@@ -45,6 +45,9 @@ def Z80selectcc      : SDNode<"Z80ISD::SELECT_CC", SDT_Z80SelectCC,
                      [SDNPInGlue]>;
 def Z80brcc          : SDNode<"Z80ISD::JPCC", SDT_Z80BrCC,
                      [SDNPHasChain, SDNPInGlue]>;
+def Z80srl           : SDNode<"Z80ISD::SRL", SDTIntUnaryOp, []>;
+def Z80sla           : SDNode<"Z80ISD::SLA", SDTIntUnaryOp, []>;
+def Z80sra           : SDNode<"Z80ISD::SRA", SDTIntUnaryOp, []>;
 //===----------------------------------------------------------------------===//
 // Z80 Operand Definitions.
 //===----------------------------------------------------------------------===//
@@ -257,6 +260,18 @@ def XOR8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
                      "xor\t{$src2}",
                      [(set ACC:$dst, (xor GR8:$src, (load addr:$src2))),
                      (implicit FLAGS)]>;
+def SRL8r : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
+                    "srl\t{$dst}",
+                    [(set GR8:$dst, (Z80srl GR8:$src)),
+                    (implicit FLAGS)]>;
+def SLA8r : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
+                    "sla\t{$dst}",
+                    [(set GR8:$dst, (Z80sla GR8:$src)),
+                    (implicit FLAGS)]>;
+def SRA8r : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
+                    "sra\t{$dst}",
+                    [(set GR8:$dst, (Z80sra GR8:$src)),
+                    (implicit FLAGS)]>;
 } // Constraints = "$src = $dst"
 
 let Defs = [FLAGS] in {
