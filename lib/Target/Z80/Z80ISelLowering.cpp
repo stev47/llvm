@@ -39,6 +39,7 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 	setOperationAction(ISD::SRA, MVT::i8, Custom);
 	setOperationAction(ISD::SELECT, MVT::i8, Expand);
 	setOperationAction(ISD::SELECT_CC, MVT::i8, Custom);
+	setOperationAction(ISD::GlobalAddress, MVT::i16, Custom);
 	//setOperationAction(ISD::STORE, MVT::i16, Custom);
 
 	setStackPointerRegisterToSaveRestore(Z80::SP);
@@ -284,11 +285,12 @@ const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
 SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {
 	switch (Op.getOpcode()) {
-	case ISD::STORE:	 return LowerStore(Op, DAG);
-	case ISD::SELECT_CC: return LowerSelectCC(Op, DAG);
+	case ISD::STORE:	     return LowerStore(Op, DAG);
+	case ISD::SELECT_CC:     return LowerSelectCC(Op, DAG);
 	case ISD::SRL:
 	case ISD::SHL:
-	case ISD::SRA:       return LowerShifts(Op, DAG);
+	case ISD::SRA:           return LowerShifts(Op, DAG);
+	case ISD::GlobalAddress: return LowerGlobalAddress(Op, DAG);
 	default:
 		llvm_unreachable("unimplemented operand");
 	}
@@ -457,4 +459,13 @@ SDValue Z80TargetLowering::LowerShifts(SDValue Op, SelectionDAG &DAG) const
 		Victim = DAG.getNode(Opc, dl, VT, Victim);
 
 	return Victim;
+}
+
+SDValue Z80TargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const
+{
+	DebugLoc dl = Op->getDebugLoc();
+	const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
+	int64_t Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
+	SDValue Result = DAG.getTargetGlobalAddress(GV, dl, getPointerTy(), Offset);
+	return Result;
 }

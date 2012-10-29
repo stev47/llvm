@@ -77,20 +77,24 @@ void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
 	const MCOperand &Base = MI->getOperand(OpNo);
 	const MCOperand &Disp = MI->getOperand(OpNo+1);
 
-	assert(Disp.isImm() && "Expected immediate in displacement field");
-
-	unsigned Idx = Disp.getImm();
-	if (Modifier)
+	if (Base.isExpr())
 	{
-		unsigned Offset;
-		StringRef(Modifier).getAsInteger(0, Offset);
-		Idx += Offset;
+		O << '(' << *Base.getExpr() << ')';
 	}
-
-	if (Base.getReg())
+	else if (Base.isReg())
 	{
-		if (Idx >= 0)	O << '(' << getRegisterName(Base.getReg()) << '+' << Idx<< ')';
-		else O << '(' << getRegisterName(Base.getReg()) << Idx << ')';
+		assert(Disp.isImm() && "Expected immediate in displacement field");
+		unsigned Idx = Disp.getImm();
+		if (Modifier)
+		{
+			unsigned Offset;
+			StringRef(Modifier).getAsInteger(0, Offset);
+			Idx += Offset;
+		}
+		char *sig;
+		if (Idx >= 0) sig = "+";
+		else sig = "";
+		O << '(' << getRegisterName(Base.getReg()) << sig << Idx << ')';
 	}
 	else llvm_unreachable("Invalid operand");
 }
@@ -116,7 +120,7 @@ void Z80InstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
 	default:
 		llvm_unreachable("Invalid CC operand");
 	case Z80::COND_NZ:
-		cond = "NZ";
+		cond = "nz";
 		break;
 	}
 	O << cond;

@@ -107,7 +107,7 @@ let neverHasSideEffects = 1 in
 def NOP : Z80Inst<(outs), (ins), "nop", []>;
 //===----------------------------------------------------------------------===//
 //  Call Instructions.
-//
+//===----------------------------------------------------------------------===//
 let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
   def CALLi : Z80Inst<(outs), (ins i16imm:$dst, variable_ops),
                       "call\t$dst", [(Z80call imm:$dst)]>;
@@ -120,12 +120,12 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
 let isBranch = 1, isTerminator = 1 in {
 let Uses = [FLAGS] in
   def JPCC : Z80Inst<(outs), (ins jmptarget:$dst, cc:$cc),
-                     "jp\t{$cc,$dst}",
+                     "jp\t{$cc, $dst}",
                      [(Z80brcc bb:$dst, imm:$cc)]>;
 }
 //===----------------------------------------------------------------------===//
 //  Load Instructions.
-//
+//===----------------------------------------------------------------------===//
 let neverHasSideEffects = 1 in {
   def LD8rr : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
                       "ld\t{$dst, $src}",
@@ -148,6 +148,9 @@ let canFoldAsLoad = 1, isReMaterializable = 1 in {
 def LD8rm : Z80Inst<(outs GR8:$dst), (ins mem:$src),
                     "ld\t{$dst, $src}",
                     [(set GR8:$dst, (load addr:$src))]>;
+def LD8Am : Z80Inst<(outs ACC:$dst), (ins i16imm:$src),
+                    "ld\t{$dst, ($src)}",
+                    [(set ACC:$dst, (load imm:$src))]>;
 def LD16rm : Z80Inst<(outs GR16:$dst), (ins mem:$src),
                      "ld\t{${dst:sub_8bit_low}, $src}\n\tld\t{${dst:sub_8bit_hi}, ${src:1}}",
                      [(set GR16:$dst, (load addr:$src))]>;
@@ -159,6 +162,9 @@ def LD8mi : Z80Inst<(outs), (ins mem:$dst, i8imm:$src),
 def LD8mr : Z80Inst<(outs), (ins mem:$dst, GR8:$src),
                     "ld\t{$dst, $src}",
                     [(store GR8:$src, addr:$dst)]>;
+def LD8mA : Z80Inst<(outs), (ins i16imm:$dst, ACC:$src),
+                    "ld\t{($dst), $src}",
+                    [(store ACC:$src, imm:$dst)]>;
 def LD16mi : Z80Inst<(outs), (ins mem:$dst, i16imm:$src),
                      "ld\t{$dst, ${src:8bit_low}}\n\tld\t{${dst:1}, ${src:8bit_hi}}",
                      [(store (i16 imm:$src), addr:$dst)]>;
@@ -168,7 +174,7 @@ def LD16mr : Z80Inst<(outs), (ins mem:$dst, GR16:$src),
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions.
-//
+//===----------------------------------------------------------------------===//
 let Defs = [SP], Uses = [SP], neverHasSideEffects = 1 in {
 let mayLoad = 1 in
 def POP16r : Z80Inst<(outs GR16:$reg), (ins),
@@ -181,7 +187,7 @@ def PUSH16r : Z80Inst<(outs), (ins GR16:$reg),
 
 //===----------------------------------------------------------------------===//
 // Arithmetic Instructions
-//
+//===----------------------------------------------------------------------===//
 let Constraints = "$src = $dst", Defs = [FLAGS] in {
 def ADD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                       "add\t{$dst, $src2}",
@@ -312,7 +318,7 @@ def CP8Ai : Z80Inst<(outs), (ins ACC:$src, i8imm:$src2),
 
 //===----------------------------------------------------------------------===//
 //  Non-Instruction Patterns.
-//
+//===----------------------------------------------------------------------===//
 
 // call
 def : Pat<(Z80call (i16 tglobaladdr:$dst)),
@@ -334,3 +340,8 @@ def : Pat<(subc GR8:$src, imm:$src2),
           (SUB8Ai GR8:$src, imm:$src2)>;
 def : Pat<(subc GR8:$src, (load addr:$src2)),
           (SUB8Am GR8:$src, addr:$src2)>;
+
+def : Pat<(i8 (load tglobaladdr:$src)),
+          (LD8Am tglobaladdr:$src)>;
+def : Pat<(store ACC:$src, tglobaladdr:$dst),
+          (LD8mA tglobaladdr:$dst, ACC:$src)>;

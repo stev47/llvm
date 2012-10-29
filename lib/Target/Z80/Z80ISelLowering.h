@@ -52,6 +52,7 @@ namespace llvm {
 		SDValue LowerStore(SDValue Op, SelectionDAG &DAG) const;
 		SDValue LowerSelectCC(SDValue Op, SelectionDAG &DAG) const;
 		SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
+		SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 
 		MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
 			MachineBasicBlock *MBB) const;
