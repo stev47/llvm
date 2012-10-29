@@ -32,14 +32,38 @@ void Z80InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 	MachineBasicBlock::iterator I, DebugLoc dl,
 	unsigned DestReg, unsigned SrcReg, bool KillSrc) const
 {
-	unsigned Opc;
 	if (Z80::GR8RegClass.contains(DestReg, SrcReg))
-		Opc = Z80::LD8rr;
+	{
+		BuildMI(MBB, I, dl, get(Z80::LD8rr), DestReg)
+			.addReg(SrcReg, getKillRegState(KillSrc));
+	}
+	else if (Z80::GR16RegClass.contains(DestReg, SrcReg))
+	{
+		if (SrcReg != Z80::IX && DestReg != Z80::IX &&
+			SrcReg != Z80::IY && DestReg != Z80::IY)
+		{
+			unsigned SrcSubReg, DestSubReg;
+
+			SrcSubReg  = RI.getSubReg(SrcReg,  Z80::sub_8bit_low);
+			DestSubReg = RI.getSubReg(DestReg, Z80::sub_8bit_low);
+			BuildMI(MBB, I, dl, get(Z80::LD8rr), DestSubReg)
+				.addReg(SrcSubReg, getKillRegState(KillSrc));
+
+			SrcSubReg  = RI.getSubReg(SrcReg,  Z80::sub_8bit_hi);
+			DestSubReg = RI.getSubReg(DestReg, Z80::sub_8bit_hi);
+			BuildMI(MBB, I, dl, get(Z80::LD8rr), DestSubReg)
+				.addReg(SrcSubReg, getKillRegState(KillSrc));
+		}
+		else
+		{
+			BuildMI(MBB, I, dl, get(Z80::PUSH16r))
+				.addReg(SrcReg, getKillRegState(KillSrc));
+			BuildMI(MBB, I, dl, get(Z80::POP16r), DestReg);
+			return;
+		}
+	}
 	else
 		llvm_unreachable("Imossible reg-to-reg copy");
-
-	BuildMI(MBB, I, dl, get(Opc), DestReg)
-		.addReg(SrcReg, getKillRegState(KillSrc));
 }
 
 void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
