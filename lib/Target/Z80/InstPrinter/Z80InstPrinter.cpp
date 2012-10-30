@@ -84,17 +84,14 @@ void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
 	else if (Base.isReg())
 	{
 		assert(Disp.isImm() && "Expected immediate in displacement field");
-		unsigned Idx = Disp.getImm();
+		int64_t Idx = Disp.getImm();
 		if (Modifier)
 		{
 			unsigned Offset;
 			StringRef(Modifier).getAsInteger(0, Offset);
 			Idx += Offset;
 		}
-		char *sig;
-		if (Idx >= 0) sig = "+";
-		else sig = "";
-		O << '(' << getRegisterName(Base.getReg()) << sig << Idx << ')';
+		O << '(' << getRegisterName(Base.getReg()) << ((Idx >= 0) ? '+' : '-') << Idx << ')';
 	}
 	else llvm_unreachable("Invalid operand");
 }
