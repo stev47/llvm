@@ -85,7 +85,7 @@ void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
 
 	unsigned Opc;
 
-	if (RC == &Z80::ACCRegClass)
+	if (RC == &Z80::GR8RegClass)
 		Opc = Z80::LD8mr;
 	else
 		llvm_unreachable("Cannot store this register to stack slot!");
@@ -115,7 +115,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 
 	unsigned Opc;
 
-	if (RC == &Z80::ACCRegClass)
+	if (RC == &Z80::GR8RegClass)
 		Opc = Z80::LD8rm;
 	else
 		llvm_unreachable("Cannot store this register to stack slot!");

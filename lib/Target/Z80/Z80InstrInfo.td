@@ -45,9 +45,14 @@ def Z80selectcc      : SDNode<"Z80ISD::SELECT_CC", SDT_Z80SelectCC,
                      [SDNPInGlue]>;
 def Z80brcc          : SDNode<"Z80ISD::JPCC", SDT_Z80BrCC,
                      [SDNPHasChain, SDNPInGlue]>;
-def Z80srl           : SDNode<"Z80ISD::SRL", SDTIntUnaryOp, []>;
+def Z80rlc           : SDNode<"Z80ISD::RLC", SDTIntUnaryOp, []>;
+def Z80rrc           : SDNode<"Z80ISD::RRC", SDTIntUnaryOp, []>;
+def Z80rl            : SDNode<"Z80ISD::RL",  SDTIntUnaryOp, []>;
+def Z80rr            : SDNode<"Z80ISD::RR",  SDTIntUnaryOp, []>;
 def Z80sla           : SDNode<"Z80ISD::SLA", SDTIntUnaryOp, []>;
 def Z80sra           : SDNode<"Z80ISD::SRA", SDTIntUnaryOp, []>;
+def Z80sll           : SDNode<"Z80ISD::SLL", SDTIntUnaryOp, []>;
+def Z80srl           : SDNode<"Z80ISD::SRL", SDTIntUnaryOp, []>;
 //===----------------------------------------------------------------------===//
 // Z80 Operand Definitions.
 //===----------------------------------------------------------------------===//
@@ -87,235 +92,122 @@ def Z80_COND_M  : PatLeaf<(i8 7)>;
 //===----------------------------------------------------------------------===//
 // Instruction list.
 //===----------------------------------------------------------------------===//
-
 let Defs = [SP, FLAGS], Uses = [SP] in {
-  def ADJCALLSTACKDOWN : Z80Inst<(outs), (ins i16imm:$amt),
-                                 "; ADJCALLSTACKDOWN",
-                                 [(Z80callseq_start timm:$amt)]>;
-  def ADJCALLSTACKUP   : Z80Inst<(outs), (ins i16imm:$amt1, i16imm:$amt2),
-                                 "; ADJCALLSTACKUP",
-                                 [(Z80callseq_end timm:$amt1, timm:$amt2)]>;
+  def ADJCALLSTACKDOWN : PseudoI<(outs), (ins i16imm:$amt),
+    [(Z80callseq_start timm:$amt)]>;
+
+  def ADJCALLSTACKUP   : PseudoI<(outs), (ins i16imm:$amt1, i16imm:$amt2),
+    [(Z80callseq_end timm:$amt1, timm:$amt2)]>;
 }
 
 let usesCustomInserter = 1 in {
-  def SELECT8 : Z80Inst<(outs GR8:$dst), (ins GR8:$src, GR8:$src2, i8imm:$cc),
-                        "; Select8 Pseudo",
-                        [(set GR8:$dst, (Z80selectcc GR8:$src, GR8:$src2, imm:$cc))]>;
+  def SELECT8 : PseudoI<(outs GR8:$dst), (ins GR8:$src, GR8:$src2, i8imm:$cc),
+    [(set GR8:$dst, (Z80selectcc GR8:$src, GR8:$src2, imm:$cc))]>;
 }
 
 let neverHasSideEffects = 1 in
-def NOP : Z80Inst<(outs), (ins), "nop", []>;
+def NOP : I<0x00, FRaw, (outs), (ins), "nop", []>;
 //===----------------------------------------------------------------------===//
 //  Call Instructions.
 //===----------------------------------------------------------------------===//
 let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
-  def CALLi : Z80Inst<(outs), (ins i16imm:$dst, variable_ops),
-                      "call\t$dst", [(Z80call imm:$dst)]>;
+  def CALLi : Ii16<0xCD, FRaw, (outs), (ins i16imm:$dst, variable_ops),
+    "call\t{$dst}", [(Z80call imm:$dst)]>;
 }
 
 let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
-  def RET : Z80Inst<(outs), (ins), "ret", [(Z80ret)]>;
+  def RET : I<0xC9, FRaw, (outs), (ins), "ret", [(Z80ret)]>;
 }
 
 let isBranch = 1, isTerminator = 1 in {
-let Uses = [FLAGS] in
-  def JPCC : Z80Inst<(outs), (ins jmptarget:$dst, cc:$cc),
-                     "jp\t{$cc, $dst}",
-                     [(Z80brcc bb:$dst, imm:$cc)]>;
+  let Uses = [FLAGS] in
+  def JPCC : Ii16<0xCA, FRaw, (outs), (ins jmptarget:$dst, cc:$cc),
+    "jp\t{$cc, $dst}", [(Z80brcc bb:$dst, imm:$cc)]>;
 }
 //===----------------------------------------------------------------------===//
 //  Load Instructions.
 //===----------------------------------------------------------------------===//
 let neverHasSideEffects = 1 in {
-  def LD8rr : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
-                      "ld\t{$dst, $src}",
-                      []>;
-  def LD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src),
-                       "ld\t{$dst, $src}",
-                       []>;
+  def LD8rr : I<0x40, FRR, (outs GR8:$dst), (ins GR8:$src),
+    "ld\t{$dst, $src}", []>;
+  def LD16rr : I<0xF9, FRaw, (outs GR16:$dst), (ins GR16:$src),
+    "ld\t{$dst, $src}", []>;
 }
 
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
-  def LD8ri : Z80Inst<(outs GR8:$dst), (ins i8imm:$src),
-                      "ld\t{$dst, $src}",
-                      [(set GR8:$dst, imm:$src)]>;
-  def LD16ri : Z80Inst<(outs GR16:$dst), (ins i16imm:$src),
-                       "ld\t{$dst, $src}",
-                       [(set GR16:$dst, imm:$src)]>;
+  def LD8ri : Ii8<0x06, FRy, (outs GR8:$dst), (ins i8imm:$src),
+    "ld\t{$dst, $src}",
+    [(set GR8:$dst, imm:$src)]>;
+  def LD16ri : Ii16<0x01, FRP, (outs GR16:$dst), (ins i16imm:$src),
+    "ld\t{$dst, $src}",
+    [(set GR16:$dst, imm:$src)]>;
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
-def LD8rm : Z80Inst<(outs GR8:$dst), (ins mem:$src),
-                    "ld\t{$dst, $src}",
-                    [(set GR8:$dst, (load addr:$src))]>;
-def LD8Am : Z80Inst<(outs ACC:$dst), (ins i16imm:$src),
-                    "ld\t{$dst, ($src)}",
-                    [(set ACC:$dst, (load imm:$src))]>;
-def LD16rm : Z80Inst<(outs GR16:$dst), (ins mem:$src),
-                     "ld\t{${dst:sub_8bit_low}, $src}\n\tld\t{${dst:sub_8bit_hi}, ${src:1}}",
-                     [(set GR16:$dst, (load addr:$src))]>;
+  def LD8rm : I<0x40, FRy, (outs GR8:$dst), (ins mem:$src),
+    "ld\t{$dst, $src}",
+    [(set GR8:$dst, (load addr:$src))]>;
 }
 
-def LD8mi : Z80Inst<(outs), (ins mem:$dst, i8imm:$src),
-                    "ld\t{$dst, $src}",
-                    [(store (i8 imm:$src), addr:$dst)]>;
-def LD8mr : Z80Inst<(outs), (ins mem:$dst, GR8:$src),
-                    "ld\t{$dst, $src}",
-                    [(store GR8:$src, addr:$dst)]>;
-def LD8mA : Z80Inst<(outs), (ins i16imm:$dst, ACC:$src),
-                    "ld\t{($dst), $src}",
-                    [(store ACC:$src, imm:$dst)]>;
-def LD16mi : Z80Inst<(outs), (ins mem:$dst, i16imm:$src),
-                     "ld\t{$dst, ${src:8bit_low}}\n\tld\t{${dst:1}, ${src:8bit_hi}}",
-                     [(store (i16 imm:$src), addr:$dst)]>;
-def LD16mr : Z80Inst<(outs), (ins mem:$dst, GR16:$src),
-                     "ld\t{$dst, ${src:sub_8bit_low}}\n\tld\t{${dst:1}, ${src:sub_8bit_hi}}",
-                     [(store GR16:$src, addr:$dst)]>;
+def LD8mr : I<0x40, FRz, (outs), (ins mem:$dst, GR8:$src),
+  "ld\t{$dst, $src}",
+  [(store GR8:$src, addr:$dst)]>;
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions.
 //===----------------------------------------------------------------------===//
 let Defs = [SP], Uses = [SP], neverHasSideEffects = 1 in {
-let mayLoad = 1 in
-def POP16r : Z80Inst<(outs GR16:$reg), (ins),
-                     "pop\t$reg", []>;
+  let mayLoad = 1 in
+    def POP16r  : I<0xC1, FRP, (outs GR16:$reg), (ins), "pop\t{$reg}", []>;
 
-let mayStore = 1 in
-def PUSH16r : Z80Inst<(outs), (ins GR16:$reg),
-                      "push\t$reg", []>;
+  let mayStore = 1 in
+    def PUSH16r : I<0xC5, FRP, (outs), (ins GR16:$reg), "push\t{$reg}", []>;
 }
-
 //===----------------------------------------------------------------------===//
 // Arithmetic Instructions
 //===----------------------------------------------------------------------===//
-let Constraints = "$src = $dst", Defs = [FLAGS] in {
-def ADD16rr : Z80Inst<(outs GR16:$dst), (ins GR16:$src, GR16:$src2),
-                      "add\t{$dst, $src2}",
-                      []>;
-def ADD16HLr : Z80Inst<(outs GR16HL:$dst), (ins GR16:$src, GR16:$src2),
-                       "add\t{$dst, $src2}",
-                       [(set GR16HL:$dst, (add GR16:$src, GR16:$src2)),
-                       (implicit FLAGS)]>;
-let isCommutable = 1 in
-def ADD8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "add\t{$dst, $src2}",
-                     [(set ACC:$dst, (add GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def ADD8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "add\t{$dst, $src2}",
-                     [(set ACC:$dst, (add GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def ADD8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "add\t{$dst, $src2}",
-                     [(set ACC:$dst, (add GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-let Uses = [FLAGS] in {
-def ADC16HLr : Z80Inst<(outs GR16HL:$dst), (ins GR16:$src, GR16:$src2),
-                       "adc\t{$dst, $src2}",
-                       [(set GR16HL:$dst, (adde GR16:$src, GR16:$src2)),
-                       (implicit FLAGS)]>;
-def ADC8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "adc\t{$dst, $src2}",
-                     [(set ACC:$dst, (adde GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def ADC8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "adc\t{$dst, $src2}",
-                     [(set ACC:$dst, (adde GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def ADC8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "adc\t{$dst, $src2}",
-                     [(set ACC:$dst, (adde GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-} // Uses = [FLAGS]
-def SUB8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "sub\t{$src2}",
-                     [(set ACC:$dst, (sub GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def SUB8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "sub\t{$src2}",
-                     [(set ACC:$dst, (sub GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def SUB8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "sub\t{$src2}",
-                     [(set ACC:$dst, (sub GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-let Uses = [FLAGS] in {
-def SBC8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "sbc\t{$dst, $src2}",
-                     [(set ACC:$dst, (sube GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def SBC8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "sbc\t{$dst, $src2}",
-                     [(set ACC:$dst, (sube GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def SBC8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "sbc\t{$dst, $src2}",
-                     [(set ACC:$dst, (sube GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-} // Uses = [FLAGS]
-let isCommutable = 1 in // X = AND Y, Z == X = AND Z, Y
-def AND8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "and\t{$src2}",
-                     [(set ACC:$dst, (and GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def AND8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "and\t{$src2}",
-                     [(set ACC:$dst, (and GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def AND8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "and\t{$src2}",
-                     [(set ACC:$dst, (and GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-let isCommutable = 1 in // X = OR Y, Z == X = OR Z, Y
-def OR8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "or\t{$src2}",
-                     [(set ACC:$dst, (or GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def OR8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "or\t{$src2}",
-                     [(set ACC:$dst, (or GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def OR8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "or\t{$src2}",
-                     [(set ACC:$dst, (or GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-let isCommutable = 1 in // X = XOR Y, Z == X = XOR Z, Y
-def XOR8Ar : Z80Inst<(outs ACC:$dst), (ins GR8:$src, GR8:$src2),
-                     "xor\t{$src2}",
-                     [(set ACC:$dst, (xor GR8:$src, GR8:$src2)),
-                     (implicit FLAGS)]>;
-def XOR8Ai : Z80Inst<(outs ACC:$dst), (ins GR8:$src, i8imm:$src2),
-                     "xor\t{$src2}",
-                     [(set ACC:$dst, (xor GR8:$src, imm:$src2)),
-                     (implicit FLAGS)]>;
-def XOR8Am : Z80Inst<(outs ACC:$dst), (ins GR8:$src, mem:$src2),
-                     "xor\t{$src2}",
-                     [(set ACC:$dst, (xor GR8:$src, (load addr:$src2))),
-                     (implicit FLAGS)]>;
-def SRL8r : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
-                    "srl\t{$dst}",
-                    [(set GR8:$dst, (Z80srl GR8:$src)),
-                    (implicit FLAGS)]>;
-def SLA8r : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
-                    "sla\t{$dst}",
-                    [(set GR8:$dst, (Z80sla GR8:$src)),
-                    (implicit FLAGS)]>;
-def SRA8r : Z80Inst<(outs GR8:$dst), (ins GR8:$src),
-                    "sra\t{$dst}",
-                    [(set GR8:$dst, (Z80sra GR8:$src)),
-                    (implicit FLAGS)]>;
-} // Constraints = "$src = $dst"
-
 let Defs = [FLAGS] in {
-def CP8Ar : Z80Inst<(outs), (ins ACC:$src, GR8:$src2),
-                    "cp\t{$src2}",
-                    [(Z80cp ACC:$src, GR8:$src2)]>;
-
-def CP8Ai : Z80Inst<(outs), (ins ACC:$src, i8imm:$src2),
-                    "cp\t{$src2}",
-                    [(Z80cp ACC:$src, imm:$src2)]>;
+  def ADD16rr : I<0x09, FRP, (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
+    "add\t{$dst, $src2}", []>;
+}
+defm ADD8 : ALUI<ALU_ADD, "add\t{a, $src}">;
+defm SUB8 : ALUI<ALU_SUB, "sub\t{$src}">;
+defm AND8 : ALUI<ALU_AND, "and\t{$src}">;
+defm XOR8 : ALUI<ALU_XOR, "xor\t{$src}">;
+defm OR8  : ALUI<ALU_OR,  "or\t{$src}">;
+defm CP8  : ALUI<ALU_CP,  "cp\t{$src}">;
+let Uses = [A, FLAGS] in {
+  defm ADC8 : ALUI<ALU_ADC, "adc\t{a, $src}">;
+  defm SBC8 : ALUI<ALU_SBC, "sbc\t{a, $src}">;
+}
+defm RLC8 : RSI<RS_RLC, "rlc\t{$src}">;
+defm RRC8 : RSI<RS_RRC, "rrc\t{$src}">;
+defm SLA8 : RSI<RS_SLA, "sla\t{$src}">;
+defm SRA8 : RSI<RS_SRA, "sra\t{$src}">;
+defm SLL8 : RSI<RS_SLL, "sll\t{$src}">;
+defm SRL8 : RSI<RS_SRL, "srl\t{$src}">;
+let Uses = [FLAGS] in {
+  defm RL8  : RSI<RS_RL,  "rl\t{$src}">;
+  defm RR8  : RSI<RS_RR,  "rr\t{$src}">;
+}
+let Constraints = "$src = $dst" in {
+let Defs = [FLAGS] in {
+  def INC8r : I<0x04, FRy, (outs GR8:$dst), (ins GR8:$src),
+    "inc\t{$src}", [(set GR8:$dst, (add GR8:$src, 1)), (implicit FLAGS)]>;
+  def DEC8r : I<0x05, FRy, (outs GR8:$dst), (ins GR8:$src),
+    "dec\t{$src}", [(set GR8:$dst, (add GR8:$src, -1)), (implicit FLAGS)]>;
 } // Defs = [FLAGS]
-
+  def INC16r : I<0x03, FRP, (outs GR16:$dst), (ins GR16:$src),
+    "inc\t{$src}", [(set GR16:$dst, (add GR16:$src, 1))]>;
+  def DEC16r : I<0x0B, FRP, (outs GR16:$dst), (ins GR16:$src),
+    "dec\t{$src}", [(set GR16:$dst, (add GR16:$src, -1))]>;
+}
+let Defs = [A, FLAGS], Uses = [A] in {
+  def CPL : I<0x2F, FRaw, (outs), (ins),
+    "cpl", [(set A, (xor A, -1)), (implicit FLAGS)]>;
+  def NEG : I<0x44, FRaw, (outs), (ins),
+    "neg", [(set A, (add (xor A, -1), 1)), (implicit FLAGS)]>;
+}
 //===----------------------------------------------------------------------===//
 //  Non-Instruction Patterns.
 //===----------------------------------------------------------------------===//
@@ -325,23 +217,12 @@ def : Pat<(Z80call (i16 tglobaladdr:$dst)),
           (CALLi tglobaladdr:$dst)>;
 
 // add and sub always produce carry
-def : Pat<(addc GR16:$src, GR16:$src2),
-          (ADD16HLr GR16:$src, GR16:$src2)>;
-def : Pat<(addc GR8:$src, GR8:$src2),
-          (ADD8Ar GR8:$src, GR8:$src2)>;
-def : Pat<(addc GR8:$src, imm:$src2),
-          (ADD8Ai GR8:$src, imm:$src2)>;
-def : Pat<(addc GR8:$src, (load addr:$src2)),
-          (ADD8Am GR8:$src, addr:$src2)>;
+def : Pat<(addc A, GR8:$src),
+          (ADD8r GR8:$src)>;
+def : Pat<(addc A, imm:$src),
+          (ADD8i imm:$src)>;
 
-def : Pat<(subc GR8:$src, GR8:$src2),
-          (SUB8Ar GR8:$src, GR8:$src2)>;
-def : Pat<(subc GR8:$src, imm:$src2),
-          (SUB8Ai GR8:$src, imm:$src2)>;
-def : Pat<(subc GR8:$src, (load addr:$src2)),
-          (SUB8Am GR8:$src, addr:$src2)>;
-
-def : Pat<(i8 (load tglobaladdr:$src)),
-          (LD8Am tglobaladdr:$src)>;
-def : Pat<(store ACC:$src, tglobaladdr:$dst),
-          (LD8mA tglobaladdr:$dst, ACC:$src)>;
+def : Pat<(subc A, GR8:$src),
+          (SUB8r GR8:$src)>;
+def : Pat<(subc A, imm:$src),
+          (SUB8i imm:$src)>;

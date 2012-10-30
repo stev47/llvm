@@ -29,9 +29,10 @@ namespace llvm {
 			SELECT_CC,
 			CP,
 			JPCC,
-			SRL,
-			SLA,
-			SRA
+			RLC, RRC,
+			RL, RR,
+			SLA, SRA,
+			SLL, SRL
 		};
 	} // end namespace Z80ISD
 
