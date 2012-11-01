@@ -279,7 +279,16 @@ const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
 	case Z80ISD::CALL:      return "Z80ISD::CALL";
 	case Z80ISD::RET:       return "Z80ISD::RET";
 	case Z80ISD::SELECT_CC: return "Z80ISD::SELECT_CC";
+  case Z80ISD::BR_CC:     return "Z80ISD::BR_CC";
 	case Z80ISD::CP:        return "Z80ISD::CP";
+  case Z80ISD::RLC:       return "Z80ISD::RLC";
+  case Z80ISD::RRC:       return "Z80ISD::RRC";
+  case Z80ISD::RL:        return "Z80ISD::RL";
+  case Z80ISD::RR:        return "Z80ISD::RR";
+  case Z80ISD::SLA:       return "Z80ISD::SLA";
+  case Z80ISD::SRA:       return "Z80ISD::SRA";
+  case Z80ISD::SLL:       return "Z80ISD::SLL";
+  case Z80ISD::SRL:       return "Z80ISD::SRL";
 	}
 }
 
