@@ -144,11 +144,19 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
+  let Defs = [A] in
+  def LD8Am : Ii16<0x3A, FRaw, (outs), (ins i16imm:$src),
+    "ld\t{a, ($src)}",
+    [(set A, (load imm:$src))]>;
   def LD8rm : I<0x40, FRy, (outs GR8:$dst), (ins mem:$src),
     "ld\t{$dst, $src}",
     [(set GR8:$dst, (load addr:$src))]>;
 }
 
+let Uses = [A] in
+def LD8mA : Ii16<0x32, FRaw, (outs), (ins i16imm:$dst),
+  "ld\t{($dst), a}",
+  [(store A, imm:$dst)]>;
 def LD8mr : I<0x40, FRz, (outs), (ins mem:$dst, GR8:$src),
   "ld\t{$dst, $src}",
   [(store GR8:$src, addr:$dst)]>;
@@ -226,3 +234,9 @@ def : Pat<(subc A, GR8:$src),
           (SUB8r GR8:$src)>;
 def : Pat<(subc A, imm:$src),
           (SUB8i imm:$src)>;
+
+// GlobalAddress
+def : Pat<(load (i16 tglobaladdr:$src)),
+          (LD8Am tglobaladdr:$src)>;
+def : Pat<(store A, (i16 tglobaladdr:$dst)),
+          (LD8mA tglobaladdr:$dst)>;
