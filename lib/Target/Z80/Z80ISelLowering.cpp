@@ -351,6 +351,9 @@ static SDValue EmitCMP(SDValue &LHS, SDValue &RHS, SDValue &TargetCC,
 	case ISD::SETNE: // aka COND_NZ
 		TCC = Z80::COND_NZ;
 		break;
+	case ISD::SETEQ: // aka COND_Z
+		TCC = Z80::COND_Z;
+		break;
 	default: llvm_unreachable("Invalid integer condition!");
 	}
 	TargetCC = DAG.getConstant(TCC, MVT::i8);

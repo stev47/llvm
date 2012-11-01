@@ -119,6 +119,27 @@ void Z80InstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
 	case Z80::COND_NZ:
 		cond = "nz";
 		break;
+	case Z80::COND_Z:
+		cond = "z";
+		break;
+	case Z80::COND_NC:
+		cond = "nc";
+		break;
+	case Z80::COND_C:
+		cond = "c";
+		break;
+	case Z80::COND_PO:
+		cond = "po";
+		break;
+	case Z80::COND_PE:
+		cond = "pe";
+		break;
+	case Z80::COND_P:
+		cond = "p";
+		break;
+	case Z80::COND_M:
+		cond = "m";
+		break;
 	}
 	O << cond;
 }

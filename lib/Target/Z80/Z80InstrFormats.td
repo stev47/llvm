@@ -116,22 +116,27 @@ class ALU<bits<8> opc, ALUOpType alu, Format f, ImmType i, dag outs, dag ins,
   ALUOpType aluType = alu;
   let Opcode{3-5} = aluType.Value;
   let CodeSize = 1;
-  let Defs = [A, FLAGS];
   let Uses = [A];
 }
 
 class ALUIr<ALUOpType alu, string asmstr>
   : ALU<0x80, alu, FRz, NoImm, (outs), (ins GR8:$src), asmstr> {
   let Pattern = !if(!eq(!cast<string>(aluType), "ALU_CP"),
-  [(!cast<dag>(aluType.Node) A, GR8:$src), (implicit FLAGS)],
-  [(set A, (!cast<dag>(aluType.Node) A, GR8:$src)), (implicit FLAGS)]);
+    [(!cast<dag>(aluType.Node) A, GR8:$src), (implicit FLAGS)],
+    [(set A, (!cast<dag>(aluType.Node) A, GR8:$src)), (implicit FLAGS)]);
+  let Defs = !if(!eq(!cast<string>(aluType), "ALU_CP"),
+    [FLAGS],
+    [A, FLAGS]);
 }
 
 class ALUIi<ALUOpType alu, string asmstr>
   : ALU<0xC6, alu, FRaw, Imm8, (outs), (ins i8imm:$src), asmstr> {
   let Pattern = !if(!eq(!cast<string>(aluType), "ALU_CP"),
-  [(!cast<dag>(aluType.Node) A, imm:$src), (implicit FLAGS)],
-  [(set A, (!cast<dag>(aluType.Node) A, imm:$src)), (implicit FLAGS)]);
+    [(!cast<dag>(aluType.Node) A, imm:$src), (implicit FLAGS)],
+    [(set A, (!cast<dag>(aluType.Node) A, imm:$src)), (implicit FLAGS)]);
+  let Defs = !if(!eq(!cast<string>(aluType), "ALU_CP"),
+    [FLAGS],
+    [A, FLAGS]);
 }
 
 multiclass ALUI<ALUOpType alu, string asmstr> {
