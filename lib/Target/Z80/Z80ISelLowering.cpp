@@ -40,6 +40,7 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
 	setOperationAction(ISD::SELECT, MVT::i8, Expand);
 	setOperationAction(ISD::SELECT_CC, MVT::i8, Custom);
 	setOperationAction(ISD::GlobalAddress, MVT::i16, Custom);
+  setOperationAction(ISD::BR_CC, MVT::i8, Custom);
 	//setOperationAction(ISD::STORE, MVT::i16, Custom);
 
 	setStackPointerRegisterToSaveRestore(Z80::SP);
@@ -291,6 +292,7 @@ SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
 	case ISD::SHL:
 	case ISD::SRA:           return LowerShifts(Op, DAG);
 	case ISD::GlobalAddress: return LowerGlobalAddress(Op, DAG);
+  case ISD::BR_CC:         return LowerBrCC(Op, DAG);
 	default:
 		llvm_unreachable("unimplemented operand");
 	}
@@ -471,4 +473,19 @@ SDValue Z80TargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) con
 	int64_t Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
 	SDValue Result = DAG.getTargetGlobalAddress(GV, dl, getPointerTy(), Offset);
 	return Result;
+}
+
+SDValue Z80TargetLowering::LowerBrCC(SDValue Op, SelectionDAG &DAG) const
+{
+  SDValue Chain = Op.getOperand(0);
+  ISD::CondCode CC = cast<CondCodeSDNode>(Op.getOperand(1))->get();
+  SDValue LHS   = Op.getOperand(2);
+  SDValue RHS   = Op.getOperand(3);
+  SDValue Dest  = Op.getOperand(4);
+  DebugLoc dl   = Op.getDebugLoc();
+
+  SDValue TargetCC;
+  SDValue Flag = EmitCMP(LHS, RHS, TargetCC, CC, dl, DAG);
+
+  return DAG.getNode(Z80ISD::BR_CC, dl, Op.getValueType(), Chain, Dest, TargetCC, Flag);
 }

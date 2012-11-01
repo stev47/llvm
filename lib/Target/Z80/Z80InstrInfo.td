@@ -43,7 +43,7 @@ def Z80ret           : SDNode<"Z80ISD::RET", SDTNone,
 def Z80cp            : SDNode<"Z80ISD::CP", SDT_Z80Cp, [SDNPOutGlue]>;
 def Z80selectcc      : SDNode<"Z80ISD::SELECT_CC", SDT_Z80SelectCC,
                      [SDNPInGlue]>;
-def Z80brcc          : SDNode<"Z80ISD::JPCC", SDT_Z80BrCC,
+def Z80brcc          : SDNode<"Z80ISD::BR_CC", SDT_Z80BrCC,
                      [SDNPHasChain, SDNPInGlue]>;
 def Z80rlc           : SDNode<"Z80ISD::RLC", SDTIntUnaryOp, []>;
 def Z80rrc           : SDNode<"Z80ISD::RRC", SDTIntUnaryOp, []>;
@@ -108,7 +108,7 @@ let usesCustomInserter = 1 in {
 let neverHasSideEffects = 1 in
 def NOP : I<0x00, FRaw, (outs), (ins), "nop", []>;
 //===----------------------------------------------------------------------===//
-//  Call Instructions.
+//  Call and Control Flow Instructions.
 //===----------------------------------------------------------------------===//
 let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
   def CALLi : Ii16<0xCD, FRaw, (outs), (ins i16imm:$dst, variable_ops),
@@ -120,6 +120,9 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
 }
 
 let isBranch = 1, isTerminator = 1 in {
+  let isBarrier = 1 in
+  def JP : Ii16<0xC3, FRaw, (outs), (ins jmptarget:$dst),
+    "jp\t{$dst}", [(br bb:$dst)]>;
   let Uses = [FLAGS] in
   def JPCC : Ii16<0xCA, FRaw, (outs), (ins jmptarget:$dst, cc:$cc),
     "jp\t{$cc, $dst}", [(Z80brcc bb:$dst, imm:$cc)]>;
