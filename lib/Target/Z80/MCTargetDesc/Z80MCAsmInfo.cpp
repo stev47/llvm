@@ -17,12 +17,12 @@ using namespace llvm;
 
 Z80MCAsmInfo::Z80MCAsmInfo(const Target &T, StringRef TT)
 {
-	PointerSize = 2;
-	WeakRefDirective = "\t.weak\t";
-	PCSymbol = ".";
-	CommentString = ";";
+  PointerSize = 2;
+  WeakRefDirective = "\t.weak\t";
+  PCSymbol = ".";
+  CommentString = ";";
 
-	AlignmentIsInBytes = false;
-	AllowNameToStartWithDigit = true;
-	UsesELFSectionDirectiveForBSS = true;
+  AlignmentIsInBytes = false;
+  AllowNameToStartWithDigit = true;
+  UsesELFSectionDirectiveForBSS = true;
 }

@@ -17,13 +17,13 @@
 #include "llvm/MC/MCAsmInfo.h"
 
 namespace llvm {
-	class StringRef;
-	class Target;
+  class StringRef;
+  class Target;
 
-	class Z80MCAsmInfo: public MCAsmInfo {
-	public:
-		explicit Z80MCAsmInfo(const Target &T, StringRef TT);
-	}; // end class Z80MCAsmInfo
+  class Z80MCAsmInfo: public MCAsmInfo {
+  public:
+    explicit Z80MCAsmInfo(const Target &T, StringRef TT);
+  }; // end class Z80MCAsmInfo
 } // end namespace llvm
 
 #endif

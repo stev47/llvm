@@ -15,9 +15,9 @@
 #define Z80MCTARGETDESC_H
 
 namespace llvm {
-    class Target;
+  class Target;
 
-    extern Target TheZ80Target;
+  extern Target TheZ80Target;
 } // end namespace llvm
 
 #define GET_REGINFO_ENUM

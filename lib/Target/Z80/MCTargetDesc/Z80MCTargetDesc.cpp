@@ -33,73 +33,73 @@ using namespace llvm;
 
 static MCInstrInfo *createZ80MCInstrInfo()
 {
-	MCInstrInfo *X = new MCInstrInfo();
-	InitZ80MCInstrInfo(X);
-	return X;
+  MCInstrInfo *X = new MCInstrInfo();
+  InitZ80MCInstrInfo(X);
+  return X;
 }
 
 static MCRegisterInfo *createZ80MCRegisterInfo(StringRef TT)
 {
-	MCRegisterInfo *X = new MCRegisterInfo();
-	InitZ80MCRegisterInfo(X, Z80::PC);
-	return X;
+  MCRegisterInfo *X = new MCRegisterInfo();
+  InitZ80MCRegisterInfo(X, Z80::PC);
+  return X;
 }
 
 static MCSubtargetInfo *createZ80MCSubtargetInfo(
-	StringRef TT,
-	StringRef CPU,
-	StringRef FS)
+  StringRef TT,
+  StringRef CPU,
+  StringRef FS)
 {
-    MCSubtargetInfo *X = new MCSubtargetInfo();
-    InitZ80MCSubtargetInfo(X, TT, CPU, FS);
-    return X;
+  MCSubtargetInfo *X = new MCSubtargetInfo();
+  InitZ80MCSubtargetInfo(X, TT, CPU, FS);
+  return X;
 }
 
 static MCCodeGenInfo *createZ80MCCodeGenInfo(
-	StringRef TT,
-	Reloc::Model RM,
-	CodeModel::Model CM,
-	CodeGenOpt::Level OL)
+  StringRef TT,
+  Reloc::Model RM,
+  CodeModel::Model CM,
+  CodeGenOpt::Level OL)
 {
-	MCCodeGenInfo *X = new MCCodeGenInfo();
-	X->InitMCCodeGenInfo(RM, CM, OL);
-	return X;
+  MCCodeGenInfo *X = new MCCodeGenInfo();
+  X->InitMCCodeGenInfo(RM, CM, OL);
+  return X;
 }
 
 static MCInstPrinter *createZ80MCInstPrinter(
-	const Target &T,
-	unsigned SyntaxVariant,
-	const MCAsmInfo &MAI,
-	const MCInstrInfo &MII,
-	const MCRegisterInfo &MRI,
-	const MCSubtargetInfo &STI)
+  const Target &T,
+  unsigned SyntaxVariant,
+  const MCAsmInfo &MAI,
+  const MCInstrInfo &MII,
+  const MCRegisterInfo &MRI,
+  const MCSubtargetInfo &STI)
 {
-	if (SyntaxVariant == 0)
-		return new Z80InstPrinter(MAI, MII, MRI);
-	return 0;
+  if (SyntaxVariant == 0)
+    return new Z80InstPrinter(MAI, MII, MRI);
+  return 0;
 }
 
 extern "C" void LLVMInitializeZ80TargetMC() {
-	// Register the MC asm info.
-	RegisterMCAsmInfo<Z80MCAsmInfo> X(TheZ80Target);
+  // Register the MC asm info.
+  RegisterMCAsmInfo<Z80MCAsmInfo> X(TheZ80Target);
 
-	// Register the MC codegen info.
-	TargetRegistry::RegisterMCCodeGenInfo(TheZ80Target,
-		createZ80MCCodeGenInfo);
+  // Register the MC codegen info.
+  TargetRegistry::RegisterMCCodeGenInfo(TheZ80Target,
+    createZ80MCCodeGenInfo);
 
-	// Register the MC instruction info.
-	TargetRegistry::RegisterMCInstrInfo(TheZ80Target,
-		createZ80MCInstrInfo);
+  // Register the MC instruction info.
+  TargetRegistry::RegisterMCInstrInfo(TheZ80Target,
+    createZ80MCInstrInfo);
 
-	// Register the MC register info.
-	TargetRegistry::RegisterMCRegInfo(TheZ80Target,
-		createZ80MCRegisterInfo);
+  // Register the MC register info.
+  TargetRegistry::RegisterMCRegInfo(TheZ80Target,
+    createZ80MCRegisterInfo);
 
-	// Register the MC subtarget info.
-	TargetRegistry::RegisterMCSubtargetInfo(TheZ80Target,
-		createZ80MCSubtargetInfo);
+  // Register the MC subtarget info.
+  TargetRegistry::RegisterMCSubtargetInfo(TheZ80Target,
+    createZ80MCSubtargetInfo);
 
-	// Register the MCInstPrinter.
-	TargetRegistry::RegisterMCInstPrinter(TheZ80Target,
-		createZ80MCInstPrinter);
+  // Register the MCInstPrinter.
+  TargetRegistry::RegisterMCInstPrinter(TheZ80Target,
+    createZ80MCInstPrinter);
 }
