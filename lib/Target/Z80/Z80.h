@@ -19,10 +19,10 @@
 #include "llvm/Target/TargetMachine.h"
 
 namespace llvm {
-    class Z80TargetMachine;
-	class FunctionPass;
+  class Z80TargetMachine;
+  class FunctionPass;
 
-	FunctionPass *createZ80ISelDag(Z80TargetMachine &TM, CodeGenOpt::Level OptLevel);
+  FunctionPass *createZ80ISelDag(Z80TargetMachine &TM, CodeGenOpt::Level OptLevel);
 } // end namespace llvm
 
 #endif

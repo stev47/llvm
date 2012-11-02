@@ -17,18 +17,18 @@
 #include "llvm/Target/TargetFrameLowering.h"
 
 namespace llvm {
-	class Z80TargetMachine;
+  class Z80TargetMachine;
 
-	class Z80FrameLowering : public TargetFrameLowering {
-		const Z80TargetMachine &TM;
-	public:
-		explicit Z80FrameLowering(const Z80TargetMachine &tm);
+  class Z80FrameLowering : public TargetFrameLowering {
+    const Z80TargetMachine &TM;
+  public:
+    explicit Z80FrameLowering(const Z80TargetMachine &tm);
 
-		void emitPrologue(MachineFunction &MF) const;
-		void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
+    void emitPrologue(MachineFunction &MF) const;
+    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
 
-		bool hasFP(const MachineFunction &MF) const;
-	}; // end class Z80FrameLowering
+    bool hasFP(const MachineFunction &MF) const;
+  }; // end class Z80FrameLowering
 } // end namespace llvm
 
 #endif

@@ -23,21 +23,21 @@
 #include <string>
 
 namespace llvm {
-    class StringRef;
-    
-    class Z80Subtarget : public Z80GenSubtargetInfo {
-    public:
-        // This constructor initializes the data members to match that
-        // of the specified triple.
-        //
-        Z80Subtarget(const std::string &TT, const std::string &CPU,
-                     const std::string &FS);
+  class StringRef;
 
-        // ParseSubtargetFeatures - Parses features string setting specified
-        // subtarget options. Definition of function is auto generated
-        // by tblgen.
-        void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
-    }; // end Z80Subtarget
+  class Z80Subtarget : public Z80GenSubtargetInfo {
+  public:
+    // This constructor initializes the data members to match that
+    // of the specified triple.
+    //
+    Z80Subtarget(const std::string &TT, const std::string &CPU,
+      const std::string &FS);
+
+    // ParseSubtargetFeatures - Parses features string setting specified
+    // subtarget options. Definition of function is auto generated
+    // by tblgen.
+    void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
+  }; // end Z80Subtarget
 } // end namespace llvm
 
 #endif

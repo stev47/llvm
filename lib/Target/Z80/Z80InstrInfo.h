@@ -22,45 +22,45 @@
 #include "Z80GenInstrInfo.inc"
 
 namespace llvm {
-	namespace Z80 {
-		enum CondCode {
-			COND_NZ = 0,
-			COND_Z  = 1,
-			COND_NC = 2,
-			COND_C  = 3,
-			COND_PO = 4,
-			COND_PE = 5,
-			COND_P  = 6,
-			COND_M  = 7,
+  namespace Z80 {
+    enum CondCode {
+      COND_NZ = 0,
+      COND_Z  = 1,
+      COND_NC = 2,
+      COND_C  = 3,
+      COND_PO = 4,
+      COND_PE = 5,
+      COND_P  = 6,
+      COND_M  = 7,
 
-			COND_INVALID
-		};
-	} // end namespace Z80
-	class Z80InstrInfo : public Z80GenInstrInfo {
-		const Z80RegisterInfo RI;
-		Z80TargetMachine &TM;
-	public:
-		explicit Z80InstrInfo(Z80TargetMachine &tm);
+      COND_INVALID
+    };
+  } // end namespace Z80
+  class Z80InstrInfo : public Z80GenInstrInfo {
+    const Z80RegisterInfo RI;
+    Z80TargetMachine &TM;
+  public:
+    explicit Z80InstrInfo(Z80TargetMachine &tm);
 
-		virtual const Z80RegisterInfo &getRegisterInfo() const { return RI; }
+    virtual const Z80RegisterInfo &getRegisterInfo() const { return RI; }
 
-		void copyPhysReg(MachineBasicBlock &MBB,
-			MachineBasicBlock::iterator I, DebugLoc dl,
-			unsigned DestReg, unsigned SrcReg, bool KillSrc) const;
+    void copyPhysReg(MachineBasicBlock &MBB,
+      MachineBasicBlock::iterator I, DebugLoc dl,
+      unsigned DestReg, unsigned SrcReg, bool KillSrc) const;
 
-		virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
-			MachineBasicBlock::iterator MI,
-			unsigned SrcReg, bool isKill,
-			int FrameIndex,
-			const TargetRegisterClass *RC,
-			const TargetRegisterInfo *TRI) const;
-		virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
-			MachineBasicBlock::iterator MI,
-			unsigned DstReg, int FrameIndex,
-			const TargetRegisterClass *RC,
-			const TargetRegisterInfo *TRI) const;
+    virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+      MachineBasicBlock::iterator MI,
+      unsigned SrcReg, bool isKill,
+      int FrameIndex,
+      const TargetRegisterClass *RC,
+      const TargetRegisterInfo *TRI) const;
+    virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
+      MachineBasicBlock::iterator MI,
+      unsigned DstReg, int FrameIndex,
+      const TargetRegisterClass *RC,
+      const TargetRegisterInfo *TRI) const;
 
-	}; // end class Z80InstrInfo
+  }; // end class Z80InstrInfo
 } // end namespace llvm
 
 #endif

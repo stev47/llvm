@@ -17,11 +17,11 @@
 #include "llvm/Target/TargetSelectionDAGInfo.h"
 
 namespace llvm {
-	class Z80SelectionDAGInfo: public TargetSelectionDAGInfo {
-	public:
-		explicit Z80SelectionDAGInfo(const Z80TargetMachine &TM);
-		~Z80SelectionDAGInfo();
-	}; // end class Z80SelectionDAGInfo
+  class Z80SelectionDAGInfo: public TargetSelectionDAGInfo {
+  public:
+    explicit Z80SelectionDAGInfo(const Z80TargetMachine &TM);
+    ~Z80SelectionDAGInfo();
+  }; // end class Z80SelectionDAGInfo
 } // end namespace llvm
 
 #endif

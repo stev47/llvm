@@ -15,7 +15,7 @@
 using namespace llvm;
 
 Z80SelectionDAGInfo::Z80SelectionDAGInfo(const Z80TargetMachine &TM)
-	: TargetSelectionDAGInfo(TM)
+  : TargetSelectionDAGInfo(TM)
 {
 }
 

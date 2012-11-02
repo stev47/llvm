@@ -19,21 +19,21 @@
 #include "llvm/CodeGen/AsmPrinter.h"
 
 namespace llvm {
-	class Z80AsmPrinter : public AsmPrinter {
-		const Z80Subtarget *Subtarget;
-	public:
-		explicit Z80AsmPrinter(TargetMachine &TM, MCStreamer &Streamer)
-			: AsmPrinter(TM, Streamer) {
-				Subtarget = &TM.getSubtarget<Z80Subtarget>();
-		}
-		virtual const char *getPassName() const {
-			return "Z80 Assembly Printer";
-		}
+  class Z80AsmPrinter : public AsmPrinter {
+    const Z80Subtarget *Subtarget;
+  public:
+    explicit Z80AsmPrinter(TargetMachine &TM, MCStreamer &Streamer)
+      : AsmPrinter(TM, Streamer) {
+        Subtarget = &TM.getSubtarget<Z80Subtarget>();
+    }
+    virtual const char *getPassName() const {
+      return "Z80 Assembly Printer";
+    }
 
-		void EmitInstruction(const MachineInstr *MI);
-		void printOperand(const MachineInstr *MI, unsigned OpNum, raw_ostream &O,
-			const char *Modifier = 0);
-	}; // end class Z80AsmPrinter
+    void EmitInstruction(const MachineInstr *MI);
+    void printOperand(const MachineInstr *MI, unsigned OpNum, raw_ostream &O,
+      const char *Modifier = 0);
+  }; // end class Z80AsmPrinter
 } // end namespace llvm
 
 #endif

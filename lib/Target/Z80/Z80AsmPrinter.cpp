@@ -23,28 +23,28 @@ using namespace llvm;
 
 void Z80AsmPrinter::EmitInstruction(const MachineInstr *MI)
 {
-	Z80MCInstLower MCInstLowering(Mang, *MF, *this);
+  Z80MCInstLower MCInstLowering(Mang, *MF, *this);
 
-	MCInst TmpInst;
-	MCInstLowering.Lower(MI, TmpInst);
-	OutStreamer.EmitInstruction(TmpInst);
+  MCInst TmpInst;
+  MCInstLowering.Lower(MI, TmpInst);
+  OutStreamer.EmitInstruction(TmpInst);
 }
 
 void Z80AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
-	raw_ostream &O, const char *Modifier)
+  raw_ostream &O, const char *Modifier)
 {
-	const MachineOperand &MO = MI->getOperand(OpNum);
-	switch (MO.getType())
-	{
-	case MachineOperand::MO_Register:
-		O << Z80InstPrinter::getRegisterName(MO.getReg());
-		return;
-	case MachineOperand::MO_Immediate:
-		O << MO.getImm();
-		return;
-	default:
-		llvm_unreachable("Not implemented yet!");
-	}
+  const MachineOperand &MO = MI->getOperand(OpNum);
+  switch (MO.getType())
+  {
+  case MachineOperand::MO_Register:
+    O << Z80InstPrinter::getRegisterName(MO.getReg());
+    return;
+  case MachineOperand::MO_Immediate:
+    O << MO.getImm();
+    return;
+  default:
+    llvm_unreachable("Not implemented yet!");
+  }
 }
 
 //===----------------------------------------------------------------------===//
@@ -53,5 +53,5 @@ void Z80AsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNum,
 
 extern "C" void LLVMInitializeZ80AsmPrinter()
 {
-	RegisterAsmPrinter<Z80AsmPrinter> X(TheZ80Target);
+  RegisterAsmPrinter<Z80AsmPrinter> X(TheZ80Target);
 }
