@@ -43,6 +43,29 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   setOperationAction(ISD::BR_CC, MVT::i8, Custom);
   //setOperationAction(ISD::STORE, MVT::i16, Custom);
 
+  setOperationAction(ISD::MUL, MVT::i8, Expand);
+  setOperationAction(ISD::SMUL_LOHI, MVT::i8, Expand);
+  setOperationAction(ISD::UMUL_LOHI, MVT::i8, Expand);
+  setOperationAction(ISD::MUL, MVT::i16, Expand);
+  setOperationAction(ISD::SMUL_LOHI, MVT::i16, Expand);
+  setOperationAction(ISD::UMUL_LOHI, MVT::i16, Expand);
+
+  setOperationAction(ISD::UDIV, MVT::i8, Expand);
+  setOperationAction(ISD::UDIVREM, MVT::i8, Expand);
+  setOperationAction(ISD::SDIV, MVT::i8, Expand);
+  setOperationAction(ISD::SDIVREM, MVT::i8, Expand);
+  setOperationAction(ISD::UDIV, MVT::i16, Expand);
+  setOperationAction(ISD::UDIVREM, MVT::i16, Expand);
+  setOperationAction(ISD::SDIV, MVT::i16, Expand);
+  setOperationAction(ISD::SDIVREM, MVT::i16, Expand);
+
+  setLibcallName(RTLIB::MUL_I8, "_mathLib_MULi8");
+  setLibcallName(RTLIB::MUL_I16, "_mathLib_MULi16");
+  setLibcallName(RTLIB::UDIV_I8, "_mathLib_UDIVi8");
+  setLibcallName(RTLIB::UDIV_I16, "_mathLib_UDIVi16");
+  setLibcallName(RTLIB::SDIV_I8, "_mathLib_SDIVi8");
+  setLibcallName(RTLIB::SDIV_I16, "_mathLib_SDIVi16");
+
   setStackPointerRegisterToSaveRestore(Z80::SP);
 }
 //===----------------------------------------------------------------------===//

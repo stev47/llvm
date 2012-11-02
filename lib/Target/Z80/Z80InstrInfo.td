@@ -228,6 +228,7 @@ let Defs = [A, FLAGS], Uses = [A] in {
 
 // call
 def : Pat<(Z80call (i16 tglobaladdr:$dst)), (CALLi tglobaladdr:$dst)>;
+def : Pat<(Z80call (i16 texternalsym:$dst)), (CALLi texternalsym:$dst)>;
 
 // add and sub always produce carry
 def : Pat<(addc A, GR8:$src), (ADD8r GR8:$src)>;
