@@ -23,6 +23,8 @@ include "Z80InstrFormats.td"
 def SDT_Z80Call         : SDTypeProfile<0, -1, [SDTCisVT<0, iPTR>]>;
 def SDT_Z80CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i16>]>;
 def SDT_Z80CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
+def SDT_Z80Wrapper      : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>,
+                                               SDTCisPtrTy<0>]>;
 def SDT_Z80Cp           : SDTypeProfile<0, 2, [SDTCisSameAs<0, 1>]>;
 def SDT_Z80SelectCC     : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                                SDTCisSameAs<1, 2>,
@@ -32,6 +34,7 @@ def SDT_Z80BrCC         : SDTypeProfile<0, 2, [SDTCisVT<0, OtherVT>,
 //===----------------------------------------------------------------------===//
 // Z80 Specific Node Definitions.
 //===----------------------------------------------------------------------===//
+def Z80wrapper       : SDNode<"Z80ISD::WRAPPER", SDT_Z80Wrapper>;
 def Z80call          : SDNode<"Z80ISD::CALL", SDT_Z80Call,
                      [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
 def Z80callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Z80CallSeqStart,
@@ -224,22 +227,17 @@ let Defs = [A, FLAGS], Uses = [A] in {
 //===----------------------------------------------------------------------===//
 
 // call
-def : Pat<(Z80call (i16 tglobaladdr:$dst)),
-          (CALLi tglobaladdr:$dst)>;
+def : Pat<(Z80call (i16 tglobaladdr:$dst)), (CALLi tglobaladdr:$dst)>;
 
 // add and sub always produce carry
-def : Pat<(addc A, GR8:$src),
-          (ADD8r GR8:$src)>;
-def : Pat<(addc A, imm:$src),
-          (ADD8i imm:$src)>;
+def : Pat<(addc A, GR8:$src), (ADD8r GR8:$src)>;
+def : Pat<(addc A, imm:$src), (ADD8i imm:$src)>;
 
-def : Pat<(subc A, GR8:$src),
-          (SUB8r GR8:$src)>;
-def : Pat<(subc A, imm:$src),
-          (SUB8i imm:$src)>;
+def : Pat<(subc A, GR8:$src), (SUB8r GR8:$src)>;
+def : Pat<(subc A, imm:$src), (SUB8i imm:$src)>;
 
 // GlobalAddress
-def : Pat<(load (i16 tglobaladdr:$src)),
-          (LD8Am tglobaladdr:$src)>;
-def : Pat<(store A, (i16 tglobaladdr:$dst)),
-          (LD8mA tglobaladdr:$dst)>;
+def : Pat<(load (i16 (Z80wrapper tglobaladdr:$src))), (LD8Am tglobaladdr:$src)>;
+def : Pat<(store A, (i16 (Z80wrapper tglobaladdr:$dst))), (LD8mA tglobaladdr:$dst)>;
+
+def : Pat<(i16 (Z80wrapper tglobaladdr:$dst)), (LD16ri tglobaladdr:$dst)>;

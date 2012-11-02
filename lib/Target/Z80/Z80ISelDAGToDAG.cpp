@@ -49,8 +49,11 @@ bool Z80DAGToDAGISel::SelectAddr(SDValue N, SDValue &Base, SDValue &Disp)
 		Base = N;
 		Disp = CurDAG->getTargetConstant(0, MVT::i8);
 		return true;
-	case ISD::TargetGlobalAddress:
-		return false;
+  case Z80ISD::WRAPPER:
+    if (N->hasOneUse()) return false;
+		Base = N;
+		Disp = CurDAG->getTargetConstant(0, MVT::i8);
+    return true;
 	case ISD::ADD:
 	case ISD::OR:
 		if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(N.getOperand(1)))

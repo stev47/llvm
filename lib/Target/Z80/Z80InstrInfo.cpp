@@ -118,7 +118,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 	if (RC == &Z80::GR8RegClass)
 		Opc = Z80::LD8rm;
 	else
-		llvm_unreachable("Cannot store this register to stack slot!");
+		llvm_unreachable("Cannot load this register from stack slot!");
 
 	BuildMI(MBB, MI, dl, get(Opc))
 		.addReg(DestReg)

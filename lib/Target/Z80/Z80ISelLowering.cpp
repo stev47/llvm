@@ -276,6 +276,7 @@ const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
 	switch (Opcode)
 	{
 	default: return NULL;
+  case Z80ISD::WRAPPER:   return "Z80ISD::WRAPPER";
 	case Z80ISD::CALL:      return "Z80ISD::CALL";
 	case Z80ISD::RET:       return "Z80ISD::RET";
 	case Z80ISD::SELECT_CC: return "Z80ISD::SELECT_CC";
@@ -481,7 +482,7 @@ SDValue Z80TargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) con
 	const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
 	int64_t Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
 	SDValue Result = DAG.getTargetGlobalAddress(GV, dl, getPointerTy(), Offset);
-	return Result;
+	return DAG.getNode(Z80ISD::WRAPPER, dl, getPointerTy(), Result);
 }
 
 SDValue Z80TargetLowering::LowerBrCC(SDValue Op, SelectionDAG &DAG) const

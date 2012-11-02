@@ -24,6 +24,7 @@ namespace llvm {
 	namespace Z80ISD {
 		enum NodeType {
 			FIRST_NUMBER = ISD::BUILTIN_OP_END,
+      WRAPPER,
 			CALL,
 			RET,
 			SELECT_CC,
