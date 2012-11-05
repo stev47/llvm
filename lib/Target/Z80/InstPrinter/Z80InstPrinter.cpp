@@ -91,7 +91,10 @@ void Z80InstPrinter::printMemOperand(const MCInst *MI, unsigned OpNo,
       StringRef(Modifier).getAsInteger(0, Offset);
       Idx += Offset;
     }
-    O << '(' << getRegisterName(Base.getReg()) << ((Idx >= 0) ? '+' : '-') << Idx << ')';
+    if (Base.getReg() == Z80::IX || Base.getReg() == Z80::IY)
+      O << '(' << getRegisterName(Base.getReg()) << ((Idx >= 0) ? '+' : '-') << Idx << ')';
+    else
+      O << '(' << getRegisterName(Base.getReg()) << ')';
   }
   else llvm_unreachable("Invalid operand");
 }
