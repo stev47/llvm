@@ -125,3 +125,77 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
     .addFrameIndex(FrameIndex).addImm(0).addMemOperand(MMO);
   MF.dump();
 }
+
+bool Z80InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
+  MachineBasicBlock *&TBB, MachineBasicBlock *&FBB,
+  SmallVectorImpl<MachineOperand> &Cond, bool AllowModify = false) const
+{
+  // Start from the bottom of the block and work up, examining the
+  // terminator instructions.
+  MachineBasicBlock::iterator I = MBB.end();
+
+  while (I != MBB.begin())
+  {
+    I--;
+    if (I->isDebugValue())
+      continue;
+
+    // Working from the bottom, when we see a non-terminator
+    // instruction, we're done.
+    if (!isUnpredicatedTerminator(I))
+      break;
+
+    // A terminator that isn't a branch can't easily be handled
+    // by this analysis.
+    if (!I->isBranch())
+      return true;
+
+    // Handle uncoditional branches.
+    if (I->getOpcode() == Z80::JP)
+    {
+      if (!AllowModify)
+      {
+        TBB = I->getOperand(0).getMBB();
+        continue;
+      }
+
+      // If the block has any instructions after a JP, delete them.
+      while (llvm::next(I) != MBB.end())
+        llvm::next(I)->eraseFromParent();
+
+      Cond.clear();
+      FBB = 0;
+
+      // Delete the JP if it's equivalent to a fall-through.
+      if (MBB.isLayoutSuccessor(I->getOperand(0).getMBB()))
+      {
+        TBB = 0;
+        I->eraseFromParent();
+        I = MBB.end();
+        continue;
+      }
+      // TBB is used to indicate the unconditional destination.
+      TBB = I->getOperand(0).getMBB();
+      continue;
+    }
+
+    // Handle conditional branches.
+    assert(I->getOpcode() == Z80::JPCC && "Invalid conditional branch");
+    Z80::CondCode BranchCC = static_cast<Z80::CondCode>(I->getOperand(1).getImm());
+    if (BranchCC == Z80::COND_INVALID)
+      return true;
+
+    // Working from the bottom, handle the first conditional branch.
+    if (Cond.empty())
+    {
+      FBB = TBB;
+      TBB = I->getOperand(0).getMBB();
+      Cond.push_back(MachineOperand::CreateImm(BranchCC));
+      continue;
+    }
+    // Handle subsequent conditional branches.
+    assert(0 && "Not implemented yet!");
+  }
+
+  return false;
+}
