@@ -561,7 +561,6 @@ SDValue Z80TargetLowering::LowerSExt(SDValue Op, SelectionDAG &DAG) const
 
   Ops.clear();
   Ops.push_back(DAG.getRegister(Z80::A, MVT::i8));
-  //Ops.push_back(Val);
   Ops.push_back(Tmp);
   Flag = SDValue(DAG.getMachineNode(Z80::SBC8r, dl, VTs, &Ops[0], Ops.size()), 0);
 

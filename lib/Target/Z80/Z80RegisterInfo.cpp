@@ -42,6 +42,8 @@ BitVector Z80RegisterInfo::getReservedRegs(const MachineFunction &MF) const
   Reserved.set(Z80::PC);
   Reserved.set(Z80::SP);
   Reserved.set(Z80::FLAGS);
+  Reserved.set(Z80::I);
+  Reserved.set(Z80::R);
 
   return Reserved;
 }

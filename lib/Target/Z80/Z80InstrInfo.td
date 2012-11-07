@@ -113,7 +113,7 @@ def NOP : I<0x00, FRaw, (outs), (ins), "nop", []>;
 //===----------------------------------------------------------------------===//
 //  Call and Control Flow Instructions.
 //===----------------------------------------------------------------------===//
-let isCall = 1, Defs = [HL, DE, BC], Uses = [SP] in {
+let isCall = 1, Uses = [SP] in {
   def CALLi : Ii16<0xCD, FRaw, (outs), (ins i16imm:$dst, variable_ops),
     "call\t{$dst}", [(Z80call imm:$dst)]>;
 }
@@ -242,6 +242,9 @@ def : Pat<(addc A, imm:$src), (ADD8i imm:$src)>;
 
 def : Pat<(subc A, GR8:$src), (SUB8r GR8:$src)>;
 def : Pat<(subc A, imm:$src), (SUB8i imm:$src)>;
+
+// neg
+def : Pat<(sub 0, A), (NEG)>;
 
 // GlobalAddress
 def : Pat<(load (i16 (Z80wrapper tglobaladdr:$src))), (LD8Am tglobaladdr:$src)>;

@@ -199,3 +199,56 @@ bool Z80InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
 
   return false;
 }
+
+unsigned Z80InstrInfo::RemoveBranch(MachineBasicBlock &MBB) const
+{
+  MachineBasicBlock::iterator I = MBB.end();
+  unsigned Count = 0;
+
+  while (I != MBB.begin())
+  {
+    I--;
+    if (I->isDebugValue())
+      continue;
+    if (I->getOpcode() != Z80::JP &&
+        I->getOpcode() != Z80::JPCC)
+      break;
+    // Remove the branch.
+    I->eraseFromParent();
+    I = MBB.end();
+    Count++;
+  }
+  return Count;
+}
+
+unsigned Z80InstrInfo::InsertBranch(MachineBasicBlock &MBB,
+  MachineBasicBlock *TBB, MachineBasicBlock *FBB,
+  const SmallVectorImpl<MachineOperand> &Cond,
+  DebugLoc DL) const
+{
+  // Shouldn't be a fall through.
+  assert(TBB && "InsertBranch must not be told to insert a fallthrough");
+  assert((Cond.size() == 0 || Cond.size() == 1) &&
+    "Z80 branch conditions have one component!");
+
+  if (Cond.empty())
+  {
+    // Unconditional branch?
+    assert(!FBB && "Unconditional branch with multiple successors!");
+    BuildMI(&MBB, DL, get(Z80::JP)).addMBB(TBB);
+    return 1;
+  }
+
+  // Conditional branch.
+  unsigned Count = 0;
+  BuildMI(&MBB, DL, get(Z80::JPCC)).addMBB(TBB).addImm(Cond[0].getImm());
+  Count++;
+
+  if (FBB)
+  {
+    // Two-way Conditional branch. Insert the second branch.
+    BuildMI(&MBB, DL, get(Z80::JP)).addMBB(FBB);
+    Count++;
+  }
+  return Count;
+}

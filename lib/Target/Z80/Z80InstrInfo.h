@@ -60,10 +60,16 @@ namespace llvm {
       const TargetRegisterClass *RC,
       const TargetRegisterInfo *TRI) const;
 
-    bool AnalyzeBranch(MachineBasicBlock &MBB,
+    virtual bool AnalyzeBranch(MachineBasicBlock &MBB,
       MachineBasicBlock *&TBB, MachineBasicBlock *&FBB,
       SmallVectorImpl<MachineOperand> &Cond,
       bool AllowModify) const;
+    virtual unsigned RemoveBranch(MachineBasicBlock &MBB) const;
+    virtual unsigned InsertBranch(MachineBasicBlock &MBB,
+      MachineBasicBlock *TBB, MachineBasicBlock *FBB,
+      const SmallVectorImpl<MachineOperand> &Cond,
+      DebugLoc DL) const;
+
   }; // end class Z80InstrInfo
 } // end namespace llvm
 
