@@ -34,6 +34,9 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1, Promote);
 
+  setOperationAction(ISD::ZERO_EXTEND, MVT::i16, Custom);
+  setOperationAction(ISD::SIGN_EXTEND, MVT::i16, Custom);
+
   setOperationAction(ISD::SRL, MVT::i8, Custom);
   setOperationAction(ISD::SHL, MVT::i8, Custom);
   setOperationAction(ISD::SRA, MVT::i8, Custom);
@@ -319,13 +322,15 @@ const char *Z80TargetLowering::getTargetNodeName(unsigned Opcode) const
 SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {
   switch (Op.getOpcode()) {
-  case ISD::STORE:	     return LowerStore(Op, DAG);
+  case ISD::STORE:         return LowerStore(Op, DAG);
   case ISD::SELECT_CC:     return LowerSelectCC(Op, DAG);
   case ISD::SRL:
   case ISD::SHL:
   case ISD::SRA:           return LowerShifts(Op, DAG);
   case ISD::GlobalAddress: return LowerGlobalAddress(Op, DAG);
   case ISD::BR_CC:         return LowerBrCC(Op, DAG);
+  case ISD::ZERO_EXTEND:   return LowerZExt(Op, DAG);
+  case ISD::SIGN_EXTEND:   return LowerSExt(Op, DAG);
   default:
     llvm_unreachable("unimplemented operand");
   }
@@ -521,4 +526,45 @@ SDValue Z80TargetLowering::LowerBrCC(SDValue Op, SelectionDAG &DAG) const
   SDValue Flag = EmitCMP(LHS, RHS, TargetCC, CC, dl, DAG);
 
   return DAG.getNode(Z80ISD::BR_CC, dl, Op.getValueType(), Chain, Dest, TargetCC, Flag);
+}
+
+SDValue Z80TargetLowering::LowerZExt(SDValue Op, SelectionDAG &DAG) const
+{
+  DebugLoc dl = Op.getDebugLoc();
+  SDValue Val = Op.getOperand(0);
+  EVT VT      = Op.getValueType();
+
+  assert(VT == MVT::i16 && "ZExt support only i16");
+  
+  SDValue Tmp = SDValue(DAG.getMachineNode(Z80::LD8ri, dl, MVT::i8, DAG.getTargetConstant(0, MVT::i8)), 0);
+  SDValue HI  = DAG.getTargetInsertSubreg(Z80::sub_8bit_hi, dl, VT, DAG.getUNDEF(VT), Tmp);
+  SDValue LO  = DAG.getTargetInsertSubreg(Z80::sub_8bit_low, dl, VT, HI, Val);
+  return LO;
+}
+
+SDValue Z80TargetLowering::LowerSExt(SDValue Op, SelectionDAG &DAG) const
+{
+  DebugLoc dl = Op.getDebugLoc();
+  SDValue Val = Op.getOperand(0);
+  EVT VT      = Op.getValueType();
+
+  assert(VT == MVT::i16 && "SExt support only i16");
+
+  SDValue Flag, Tmp, LO, HI;
+  SDVTList VTs = DAG.getVTList(MVT::i8, MVT::Glue);
+  SmallVector<SDValue, 2> Ops;
+
+  LO   = DAG.getTargetInsertSubreg(Z80::sub_8bit_low, dl, VT, DAG.getUNDEF(VT), Val);
+
+  Ops.push_back(Val);
+  Tmp  = SDValue(DAG.getMachineNode(Z80::RL8r, dl, VTs, &Ops[0], Ops.size()), 1);
+
+  Ops.clear();
+  Ops.push_back(DAG.getRegister(Z80::A, MVT::i8));
+  //Ops.push_back(Val);
+  Ops.push_back(Tmp);
+  Flag = SDValue(DAG.getMachineNode(Z80::SBC8r, dl, VTs, &Ops[0], Ops.size()), 0);
+
+  HI   = DAG.getTargetInsertSubreg(Z80::sub_8bit_hi, dl, VT, LO, Flag);
+  return HI;
 }

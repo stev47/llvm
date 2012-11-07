@@ -218,9 +218,9 @@ let Defs = [FLAGS] in {
 }
 let Defs = [A, FLAGS], Uses = [A] in {
   def CPL : I<0x2F, FRaw, (outs), (ins),
-    "cpl", [(set A, (xor A, -1)), (implicit FLAGS)]>;
+    "cpl", [(set A, (not A)), (implicit FLAGS)]>;
   def NEG : I<0x44, FRaw, (outs), (ins),
-    "neg", [(set A, (add (xor A, -1), 1)), (implicit FLAGS)]>;
+    "neg", [(set A, (add (not A), 1)), (implicit FLAGS)]>;
 }
 //===----------------------------------------------------------------------===//
 //  Non-Instruction Patterns.
@@ -229,6 +229,12 @@ let Defs = [A, FLAGS], Uses = [A] in {
 // call
 def : Pat<(Z80call (i16 tglobaladdr:$dst)), (CALLi tglobaladdr:$dst)>;
 def : Pat<(Z80call (i16 texternalsym:$dst)), (CALLi texternalsym:$dst)>;
+
+// anyext
+def : Pat<(i16 (anyext GR8:$src)),
+  (INSERT_SUBREG (i16 (IMPLICIT_DEF)), GR8:$src, sub_8bit_low)>;
+// trunc
+def : Pat<(i8 (trunc GR16:$src)), (EXTRACT_SUBREG GR16:$src, sub_8bit_low)>;
 
 // add and sub always produce carry
 def : Pat<(addc A, GR8:$src), (ADD8r GR8:$src)>;
