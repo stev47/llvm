@@ -66,12 +66,10 @@ def ALU_XOR : ALUOpType<5, "xor">;
 def ALU_OR  : ALUOpType<6, "or">;
 def ALU_CP  : ALUOpType<7, "Z80cp">;
 
-class Z80Inst<bits<8> opc, Format f, ImmType i, dag outs, dag ins,
-              string asmstr>
+class Z80Pseudo<Format f, ImmType i, dag outs, dag ins>
   : Instruction {
   let Namespace = "Z80";
 
-  bits<8> Opcode = opc;
   Format Form = f;
   ImmType ImmT = i;
 
@@ -80,12 +78,17 @@ class Z80Inst<bits<8> opc, Format f, ImmType i, dag outs, dag ins,
 
   let TSFlags{2-0} = Form.Value;
   let TSFlags{4-3} = ImmT.Value;
+}
 
+class Z80Inst<bits<8> opc, Format f, ImmType i, dag outs, dag ins,
+              string asmstr>
+  : Z80Pseudo<f, i, outs, ins> {
+  bits<8> Opcode = opc;
   let AsmString = asmstr;
 }
 
 class PseudoI<dag outs, dag ins, list<dag> pattern>
-  : Z80Inst<0, FPseudo, NoImm, outs, ins, ""> {
+  : Z80Pseudo<FPseudo, NoImm, outs, ins> {
   let Pattern = pattern;
 }
 
