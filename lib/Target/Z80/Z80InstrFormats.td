@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 class Format<bits<3> val> {
-  bits<3> Value = val;
+  field bits<3> Value = val;
 }
 
 // Naming of opcode bits encoding is borrowed from this page:
@@ -29,7 +29,7 @@ def FRR     : Format<4>; // r[y], r[z] - two 8-bit registers
 def FRP     : Format<5>; // rp[p] = BC/DE/HL/SP
 
 class ImmType<bits<2> val> {
-  bits<2> Value = val;
+  field bits<2> Value = val;
 }
 def NoImm     : ImmType<0>;
 def Imm8      : ImmType<1>;
@@ -38,7 +38,7 @@ def Imm16     : ImmType<3>;
 
 // 3 bits encoding rotation/shift operation type
 class RSOpType<bits<3> val, string node> {
-  bits<3> Value = val;
+  field bits<3> Value = val;
   string Node = node;
 }
 
@@ -53,7 +53,7 @@ def RS_SRL : RSOpType<7, "Z80srl">;
 
 // 3 bits encoding ALU operation type
 class ALUOpType<bits<3> val, string node> {
-  bits<3> Value = val;
+  field bits<3> Value = val;
   string Node = node;
 }
 
@@ -69,7 +69,7 @@ def ALU_CP  : ALUOpType<7, "Z80cp">;
 // 3 bits encoding prefix
 class Prefix<bits<3> n>
 {
-  bits<3> Prefix = n;
+  field bits<3> Prefix = n;
 }
 class CB   : Prefix<1>;
 class ED   : Prefix<2>;
@@ -84,7 +84,7 @@ class Z80Pseudo<Format f, ImmType i, dag outs, dag ins>
 
   Format Form = f;
   ImmType ImmT = i;
-  bits<3> Prefix = 0;
+  field bits<3> Prefix = 0;
 
   dag OutOperandList = outs;
   dag InOperandList = ins;
@@ -97,7 +97,7 @@ class Z80Pseudo<Format f, ImmType i, dag outs, dag ins>
 class Z80Inst<bits<8> opc, Format f, ImmType i, dag outs, dag ins,
               string asmstr>
   : Z80Pseudo<f, i, outs, ins> {
-  bits<8> Opcode = opc;
+  field bits<8> Opcode = opc;
   let AsmString = asmstr;
   let CodeSize = 1;
 }
