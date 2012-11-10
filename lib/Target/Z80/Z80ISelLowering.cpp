@@ -388,11 +388,27 @@ static SDValue EmitCMP(SDValue &LHS, SDValue &RHS, SDValue &TargetCC,
   Z80::CondCode TCC = Z80::COND_INVALID;
   switch (CC)
   {
+  case ISD::SETUNE:
   case ISD::SETNE: // aka COND_NZ
+    if (LHS.getOpcode() == ISD::Constant)
+      std::swap(LHS, RHS);
     TCC = Z80::COND_NZ;
     break;
+  case ISD::SETUEQ:
   case ISD::SETEQ: // aka COND_Z
+    if (LHS.getOpcode() == ISD::Constant)
+      std::swap(LHS, RHS);
     TCC = Z80::COND_Z;
+    break;
+  case ISD::SETUGT:
+    std::swap(LHS, RHS);
+  case ISD::SETULT: // aka COND_C
+    TCC = Z80::COND_C;
+    break;
+  case ISD::SETULE:
+    std::swap(LHS, RHS);
+  case ISD::SETUGE: // aka COND_NC
+    TCC = Z80::COND_NC;
     break;
   default: llvm_unreachable("Invalid integer condition!");
   }
