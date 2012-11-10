@@ -66,18 +66,32 @@ def ALU_XOR : ALUOpType<5, "xor">;
 def ALU_OR  : ALUOpType<6, "or">;
 def ALU_CP  : ALUOpType<7, "Z80cp">;
 
+// 3 bits encoding prefix
+class Prefix<bits<3> n>
+{
+  bits<3> Prefix = n;
+}
+class CB   : Prefix<1>;
+class ED   : Prefix<2>;
+class DD   : Prefix<3>;
+class FD   : Prefix<4>;
+class DDCB : Prefix<5>;
+class FDCB : Prefix<6>;
+
 class Z80Pseudo<Format f, ImmType i, dag outs, dag ins>
   : Instruction {
   let Namespace = "Z80";
 
   Format Form = f;
   ImmType ImmT = i;
+  bits<3> Prefix = 0;
 
   dag OutOperandList = outs;
   dag InOperandList = ins;
 
   let TSFlags{2-0} = Form.Value;
   let TSFlags{4-3} = ImmT.Value;
+  let TSFlags{7-5} = Prefix;
 }
 
 class Z80Inst<bits<8> opc, Format f, ImmType i, dag outs, dag ins,
@@ -85,6 +99,7 @@ class Z80Inst<bits<8> opc, Format f, ImmType i, dag outs, dag ins,
   : Z80Pseudo<f, i, outs, ins> {
   bits<8> Opcode = opc;
   let AsmString = asmstr;
+  let CodeSize = 1;
 }
 
 class PseudoI<dag outs, dag ins, list<dag> pattern>
@@ -96,7 +111,6 @@ class I<bits<8> opc, Format f, dag outs, dag ins, string asmstr,
         list<dag> pattern>
   : Z80Inst<opc, f, NoImm, outs, ins, asmstr> {
   let Pattern = pattern;
-  let CodeSize = 1;
 }
 
 class Ii8<bits<8> opc, Format f, dag outs, dag ins, string asmstr,
@@ -118,7 +132,6 @@ class ALU<bits<8> opc, ALUOpType alu, Format f, ImmType i, dag outs, dag ins,
   : Z80Inst<opc, f, i, outs, ins, asmstr> {
   ALUOpType aluType = alu;
   let Opcode{3-5} = aluType.Value;
-  let CodeSize = 1;
   let Uses = [A];
 }
 
@@ -151,12 +164,11 @@ class RSIr<RSOpType rs, string asmstr>
   : Z80Inst<0x00, FRz, NoImm, (outs GR8:$dst), (ins GR8:$src), asmstr> {
   RSOpType rsType = rs;
   let Opcode{5-3} = rsType.Value;
-  let CodeSize = 2;
   let Pattern = [(set GR8:$dst, (!cast<dag>(rsType.Node) GR8:$src))];
   let Defs = [FLAGS];
   let Constraints = "$src = $dst";
 }
 
 multiclass RSI<RSOpType rs, string asmstr> {
-  def r : RSIr<rs, asmstr>;
+  def r : RSIr<rs, asmstr>, CB;
 }

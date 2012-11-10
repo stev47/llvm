@@ -220,7 +220,7 @@ let Defs = [A, FLAGS], Uses = [A] in {
   def CPL : I<0x2F, FRaw, (outs), (ins),
     "cpl", [(set A, (not A)), (implicit FLAGS)]>;
   def NEG : I<0x44, FRaw, (outs), (ins),
-    "neg", [(set A, (add (not A), 1)), (implicit FLAGS)]>;
+    "neg", [(set A, (add (not A), 1)), (implicit FLAGS)]>, ED;
 }
 //===----------------------------------------------------------------------===//
 //  Non-Instruction Patterns.
