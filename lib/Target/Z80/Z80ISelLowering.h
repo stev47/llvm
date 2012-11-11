@@ -58,6 +58,7 @@ namespace llvm {
     SDValue LowerBrCC(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerZExt(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerSExt(SDValue Op, SelectionDAG &DAG) const;
+    SDValue LowerBinaryOp(SDValue Op, SelectionDAG &DAG) const;
 
     MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
       MachineBasicBlock *MBB) const;

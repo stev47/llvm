@@ -46,6 +46,10 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   setOperationAction(ISD::BR_CC, MVT::i8, Custom);
   //setOperationAction(ISD::STORE, MVT::i16, Custom);
 
+  setOperationAction(ISD::AND, MVT::i16, Custom);
+  setOperationAction(ISD::OR,  MVT::i16, Custom);
+  setOperationAction(ISD::XOR, MVT::i16, Custom);
+
   setOperationAction(ISD::MUL, MVT::i8, Expand);
   setOperationAction(ISD::SMUL_LOHI, MVT::i8, Expand);
   setOperationAction(ISD::UMUL_LOHI, MVT::i8, Expand);
@@ -331,6 +335,9 @@ SDValue Z80TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
   case ISD::BR_CC:         return LowerBrCC(Op, DAG);
   case ISD::ZERO_EXTEND:   return LowerZExt(Op, DAG);
   case ISD::SIGN_EXTEND:   return LowerSExt(Op, DAG);
+  case ISD::AND:
+  case ISD::OR:
+  case ISD::XOR:           return LowerBinaryOp(Op, DAG);
   default:
     llvm_unreachable("unimplemented operand");
   }
@@ -582,4 +589,35 @@ SDValue Z80TargetLowering::LowerSExt(SDValue Op, SelectionDAG &DAG) const
 
   HI   = DAG.getTargetInsertSubreg(Z80::sub_8bit_hi, dl, VT, LO, Flag);
   return HI;
+}
+
+SDValue Z80TargetLowering::LowerBinaryOp(SDValue Op, SelectionDAG &DAG) const
+{
+  DebugLoc dl = Op.getDebugLoc();
+  SDValue LHS = Op.getOperand(0);
+  SDValue RHS = Op.getOperand(1);
+  EVT VT      = Op.getValueType();
+  EVT HalfVT  = VT.getHalfSizedIntegerVT(*DAG.getContext());
+
+  assert(VT == MVT::i16 && "Invalid type for lowering");
+
+  unsigned Opc = Op.getOpcode();
+
+  SDValue LHS_LO, LHS_HI;
+  SDValue RHS_LO, RHS_HI;
+  SDValue LO, HI;
+  SDValue Tmp1, Tmp2;
+
+  LHS_LO = DAG.getTargetExtractSubreg(Z80::sub_8bit_low, dl, HalfVT, LHS);
+  LHS_HI = DAG.getTargetExtractSubreg(Z80::sub_8bit_hi,  dl, HalfVT, LHS);
+  RHS_LO = DAG.getTargetExtractSubreg(Z80::sub_8bit_low, dl, HalfVT, RHS);
+  RHS_HI = DAG.getTargetExtractSubreg(Z80::sub_8bit_hi,  dl, HalfVT, RHS);
+
+  LO = DAG.getNode(Opc, dl, HalfVT, LHS_LO, RHS_LO);
+  HI = DAG.getNode(Opc, dl, HalfVT, LHS_HI, RHS_HI);
+
+  Tmp1 = DAG.getTargetInsertSubreg(Z80::sub_8bit_low, dl, VT, DAG.getUNDEF(VT), LO);
+  Tmp2 = DAG.getTargetInsertSubreg(Z80::sub_8bit_hi,  dl, VT, Tmp1, HI);
+
+  return Tmp2;
 }
