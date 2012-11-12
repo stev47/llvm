@@ -610,8 +610,13 @@ SDValue Z80TargetLowering::LowerBinaryOp(SDValue Op, SelectionDAG &DAG) const
 
   LHS_LO = DAG.getTargetExtractSubreg(Z80::sub_8bit_low, dl, HalfVT, LHS);
   LHS_HI = DAG.getTargetExtractSubreg(Z80::sub_8bit_hi,  dl, HalfVT, LHS);
-  RHS_LO = DAG.getTargetExtractSubreg(Z80::sub_8bit_low, dl, HalfVT, RHS);
-  RHS_HI = DAG.getTargetExtractSubreg(Z80::sub_8bit_hi,  dl, HalfVT, RHS);
+  if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(RHS)) {
+    RHS_LO = DAG.getConstant(CN->getZExtValue() & 0xFF, HalfVT);
+    RHS_HI = DAG.getConstant(CN->getZExtValue()>>8 & 0xFF, HalfVT);
+  } else {
+    RHS_LO = DAG.getTargetExtractSubreg(Z80::sub_8bit_low, dl, HalfVT, RHS);
+    RHS_HI = DAG.getTargetExtractSubreg(Z80::sub_8bit_hi,  dl, HalfVT, RHS);
+  }
 
   LO = DAG.getNode(Opc, dl, HalfVT, LHS_LO, RHS_LO);
   HI = DAG.getNode(Opc, dl, HalfVT, LHS_HI, RHS_HI);
