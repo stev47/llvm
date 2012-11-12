@@ -82,6 +82,4 @@ def PC : Z80Reg<"pc">;
 def GR8  : RegisterClass<"Z80", [i8],  8,
   (add A, B, C, D, E, H, L, I, R, HX, LX, HY, LY, FLAGS)>;
 def GR16 : RegisterClass<"Z80", [i16], 8,
-  (add BC, DE, HL, IX, IY, PC, SP)> {
-  let SubRegClasses = [(GR8 sub_8bit_hi, sub_8bit_low)];
-}
+  (add BC, DE, HL, IX, IY, PC, SP)>;

@@ -23,8 +23,8 @@ using namespace llvm;
 Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   : TargetLowering(TM, new TargetLoweringObjectFileELF())
 {
-  addRegisterClass(MVT::i8, Z80::GR8RegisterClass);
-  addRegisterClass(MVT::i16, Z80::GR16RegisterClass);
+  addRegisterClass(MVT::i8, &Z80::GR8RegClass);
+  addRegisterClass(MVT::i16, &Z80::GR16RegClass);
 
   computeRegisterProperties();
 
@@ -110,13 +110,13 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
       default:
         llvm_unreachable("unknown argument type!");
       case MVT::i16:
-        VReg = MRI.createVirtualRegister(Z80::GR16RegisterClass);
+        VReg = MRI.createVirtualRegister(&Z80::GR16RegClass);
         MRI.addLiveIn(VA.getLocReg(), VReg);
         ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
         InVals.push_back(ArgValue);
         break;
       case MVT::i8:
-        VReg = MRI.createVirtualRegister(Z80::GR8RegisterClass);
+        VReg = MRI.createVirtualRegister(&Z80::GR8RegClass);
         MRI.addLiveIn(VA.getLocReg(), VReg);
         ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
         InVals.push_back(ArgValue);

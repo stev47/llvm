@@ -57,7 +57,7 @@ TargetPassConfig *Z80TargetMachine::createPassConfig(PassManagerBase &PM)
 
 bool Z80PassConfig::addInstSelector()
 {
-  PM->add(createZ80ISelDag(getZ80TargetMachine(), getOptLevel()));
+  addPass(createZ80ISelDag(getZ80TargetMachine(), getOptLevel()));
   return false;
 }
 
